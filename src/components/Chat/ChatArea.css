@@ -1,0 +1,80 @@
+.yen-chat {
+  flex: 1;
+  overflow-y: auto;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+  min-height: 0;
+}
+
+.yen-chat::-webkit-scrollbar {
+  display: none;
+}
+
+.yen-chat--vis {
+  display: flex;
+}
+
+.yen-msg {
+  padding: 11px 16px;
+  border-radius: 20px;
+  font-size: 15px;
+  max-width: 70%;
+  line-height: 1.45;
+  animation: yen-msg-in 0.25s ease;
+}
+
+.yen-msg--u {
+  background: var(--msg-u);
+  align-self: flex-end;
+  border-bottom-right-radius: 5px;
+}
+
+.yen-msg--y {
+  background: var(--msg-y);
+  align-self: flex-start;
+  border-bottom-left-radius: 5px;
+  border: 1px solid var(--btn-border);
+}
+
+.yen-chat-typing {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border-radius: 20px;
+  background: var(--msg-y);
+  border: 1px solid var(--btn-border);
+  color: var(--text2);
+  font-size: 0.9rem;
+  animation: yen-msg-in 0.25s ease;
+}
+
+.yen-chat-typing__dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 1em;
+}
+
+.yen-chat-typing__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text2);
+  animation: chat-typing-dot 1.2s ease-in-out infinite;
+}
+
+.yen-chat-typing__dot:nth-child(1) {
+  animation-delay: 0s;
+}
+.yen-chat-typing__dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.yen-chat-typing__dot:nth-child(3) {
+  animation-delay: 0.4s;
+}

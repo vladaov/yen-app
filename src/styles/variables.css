@@ -1,0 +1,90 @@
+/* Токены темы в стиле макета Йен + алиасы для старых имён переменных. */
+:root {
+  --t: 0.35s ease;
+  --font-family-base: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+  --transition-base: var(--t);
+
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.25rem;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+}
+
+html[data-theme='dark'] {
+  --bg: #08071a;
+  --text: #e0ddf0;
+  --text2: #6e69a0;
+  --accent: #8b5cf6;
+  --face-color: #8b5cf6;
+  --face-glow: rgba(139, 92, 246, 0.5);
+  --btn-bg: rgba(139, 92, 246, 0.08);
+  --btn-border: rgba(139, 92, 246, 0.2);
+  --btn-hover: rgba(139, 92, 246, 0.18);
+  --bubble-bg: rgba(19, 17, 42, 0.95);
+  --bubble-border: rgba(139, 92, 246, 0.25);
+  --msg-u: rgba(50, 40, 100, 0.6);
+  --msg-y: rgba(25, 22, 50, 0.7);
+  --input-bg: #13112a;
+  --input-border: rgba(139, 92, 246, 0.2);
+  --overlay: rgba(0, 0, 0, 0.55);
+  --settings-bg: #0e0c24;
+  --rec-color: #ef4444;
+  --rec-glow: rgba(239, 68, 68, 0.35);
+  --tear-color: #93c5fd;
+  --angry-color: #ef4444;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-text-muted: var(--text2);
+  --color-surface: var(--settings-bg);
+  --color-border: var(--btn-border);
+  --color-mode-active-bg: var(--accent);
+  --color-mode-active-text: #fff;
+  --color-bot-message-bg: var(--msg-y);
+  --color-user-message-bg: var(--msg-u);
+  --color-mic-active: var(--rec-color);
+  --color-orb-start: var(--accent);
+  --color-orb-end: var(--accent);
+  --color-orb-glow: var(--face-glow);
+}
+
+html[data-theme='light'] {
+  --bg: #f4f1fb;
+  --text: #2d2845;
+  --text2: #8a84b0;
+  --accent: #9b7fd4;
+  --face-color: #9b7fd4;
+  --face-glow: rgba(155, 127, 212, 0.3);
+  --btn-bg: rgba(155, 127, 212, 0.06);
+  --btn-border: rgba(155, 127, 212, 0.2);
+  --btn-hover: rgba(155, 127, 212, 0.14);
+  --bubble-bg: rgba(255, 255, 255, 0.96);
+  --bubble-border: rgba(155, 127, 212, 0.25);
+  --msg-u: rgba(200, 190, 230, 0.5);
+  --msg-y: rgba(245, 240, 255, 0.7);
+  --input-bg: #eee9f6;
+  --input-border: rgba(155, 127, 212, 0.2);
+  --overlay: rgba(244, 241, 251, 0.7);
+  --settings-bg: #eae5f4;
+  --rec-color: #ef4444;
+  --rec-glow: rgba(239, 68, 68, 0.25);
+  --tear-color: #7cacf0;
+  --angry-color: #e04040;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-text-muted: var(--text2);
+  --color-surface: var(--bubble-bg);
+  --color-border: var(--btn-border);
+  --color-mode-active-bg: var(--accent);
+  --color-mode-active-text: #fff;
+  --color-bot-message-bg: var(--msg-y);
+  --color-user-message-bg: var(--msg-u);
+  --color-mic-active: var(--rec-color);
+  --color-orb-start: var(--accent);
+  --color-orb-end: var(--accent);
+  --color-orb-glow: var(--face-glow);
+}

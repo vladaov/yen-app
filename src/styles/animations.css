@@ -1,0 +1,65 @@
+/* Все @keyframes проекта в одном месте. */
+@keyframes chat-typing-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes yen-settings-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.93);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes yen-tear-drop {
+  0% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) translateY(clamp(16px, 2.5vw, 30px));
+    opacity: 0;
+  }
+}
+
+@keyframes yen-voice-bars {
+  from {
+    transform: scaleY(0.3);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes yen-msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes yen-mic-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--rec-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 16px transparent;
+  }
+}

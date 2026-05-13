@@ -1,0 +1,254 @@
+.yen-input-root {
+  width: 100%;
+}
+
+.yen-input-error {
+  margin: 0 0 10px;
+  color: var(--rec-color);
+  font-size: 0.9rem;
+}
+
+.yen-input-hint {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: var(--text2);
+  text-align: center;
+}
+
+.yen-voice-live {
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: var(--bubble-bg);
+  border: 1.5px solid var(--bubble-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.yen-voice-live__label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.yen-voice-live__text {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 1.4em;
+}
+
+.yen-voice-live__hint {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  color: var(--text2);
+  line-height: 1.35;
+}
+
+.yen-vi {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 16px;
+  height: 30px;
+}
+
+.yen-vi--vis {
+  display: flex;
+}
+
+.yen-vb {
+  width: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  transform-origin: center bottom;
+  animation: yen-voice-bars 0.5s ease-in-out infinite alternate;
+}
+
+.yen-vb:nth-child(1) {
+  height: 8px;
+  animation-delay: 0s;
+}
+.yen-vb:nth-child(2) {
+  height: 15px;
+  animation-delay: 0.07s;
+}
+.yen-vb:nth-child(3) {
+  height: 24px;
+  animation-delay: 0.14s;
+}
+.yen-vb:nth-child(4) {
+  height: 18px;
+  animation-delay: 0.1s;
+}
+.yen-vb:nth-child(5) {
+  height: 11px;
+  animation-delay: 0.03s;
+}
+.yen-vb:nth-child(6) {
+  height: 16px;
+  animation-delay: 0.09s;
+}
+.yen-vb:nth-child(7) {
+  height: 7px;
+  animation-delay: 0.02s;
+}
+
+.yen-vm {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding-bottom: 12px;
+}
+
+.yen-vm--vis {
+  display: flex;
+}
+
+.yen-tm {
+  display: none;
+  width: 100%;
+  padding-bottom: 12px;
+}
+
+.yen-tm--vis {
+  display: block;
+}
+
+.yen-tm-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.yen-tm-row textarea {
+  flex: 1;
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: 22px;
+  padding: 12px 18px;
+  color: var(--text);
+  font-family: var(--font-family-base);
+  font-size: 15px;
+  font-weight: 500;
+  resize: none;
+  min-height: 48px;
+  max-height: 120px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.yen-tm-row textarea:focus {
+  border-color: var(--accent);
+}
+
+.yen-tm-row textarea::placeholder {
+  color: var(--text2);
+}
+
+.yen-btn-round {
+  border-radius: 50%;
+  border: 1.5px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--text2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.yen-btn-round:hover {
+  background: var(--btn-hover);
+}
+.yen-btn-round:active {
+  transform: scale(0.92);
+}
+
+.yen-btn-round svg {
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.yen-btn-sm {
+  width: 48px;
+  height: 48px;
+}
+.yen-btn-sm svg {
+  width: 20px;
+  height: 20px;
+}
+
+.yen-mic-big {
+  width: 68px;
+  height: 68px;
+  box-shadow: 0 2px 20px var(--face-glow);
+}
+
+.yen-mic-big svg {
+  width: 28px;
+  height: 28px;
+  stroke: var(--text);
+}
+
+.yen-mic-big:hover {
+  background: var(--accent);
+  box-shadow: 0 4px 32px var(--face-glow);
+}
+.yen-mic-big:hover svg {
+  stroke: #fff;
+}
+
+.yen-mic-big--rec {
+  background: var(--rec-color);
+  border-color: var(--rec-color);
+  animation: yen-mic-pulse 1.2s infinite;
+}
+
+.yen-mic-big--rec svg {
+  stroke: #fff;
+}
+
+.yen-btn-send {
+  width: 48px;
+  height: 48px;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  box-shadow: 0 2px 14px var(--face-glow);
+}
+
+.yen-btn-send svg {
+  width: 20px;
+  height: 20px;
+  stroke: #fff;
+}
+
+.yen-btn-close svg,
+.yen-btn-mic-s svg {
+  width: 20px;
+  height: 20px;
+}
+
+.yen-btn-mic-s svg {
+  width: 19px;
+  height: 19px;
+}
+
+.yen-btn-close,
+.yen-btn-mic-s {
+  width: 48px;
+  height: 48px;
+}

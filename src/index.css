@@ -1,0 +1,68 @@
+@import './styles/variables.css';
+@import './styles/animations.css';
+@import './styles/global.css';
+
+/* Корневой layout приложения Йен (по макету). */
+#root {
+  height: 100vh;
+}
+
+.yen-app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.yen-face-area {
+  flex: 0 0 65%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.yen-middle {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  padding: 0 24px;
+  min-height: 44px;
+}
+
+.yen-bubble {
+  background: var(--bubble-bg);
+  border: 1.5px solid var(--bubble-border);
+  border-radius: 20px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  max-width: 400px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.yen-bubble--vis {
+  opacity: 1;
+}
+
+.yen-controls {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 24px 24px;
+  justify-content: flex-end;
+  min-height: 0;
+}

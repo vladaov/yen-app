@@ -1,0 +1,34 @@
+/* Глобальный сброс и базовая типографика в стиле макета Йен. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-family-base);
+  background: var(--bg);
+  color: var(--text);
+  transition:
+    background var(--t),
+    color var(--t);
+}
+
+body {
+  height: 100vh;
+  overflow: hidden;
+}
+
+button,
+textarea {
+  font: inherit;
+}
