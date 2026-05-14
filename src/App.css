@@ -1,3 +1,65 @@
+/* ── кнопка переключения лицо ↔ чат ──────────────────────────────────────── */
+.yen-view-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  line-height: 1;
+}
+
+.yen-view-toggle:hover {
+  color: rgba(255, 255, 255, 0.6);
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* В режиме чата — чуть заметнее, чтобы было легче найти */
+.yen-app--chat-mode .yen-view-toggle {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── обёртка ChatArea для позиционирования кнопки развернуть ─────────────── */
+.yen-chat-wrap {
+  position: relative;
+}
+
+/* ── кнопка развернуть/свернуть ──────────────────────────────────────────── */
+.yen-expand-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  color: currentColor;
+  opacity: 0.4;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: opacity 0.2s;
+}
+
+.yen-expand-btn:hover {
+  opacity: 0.8;
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;

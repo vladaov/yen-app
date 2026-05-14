@@ -177,6 +177,24 @@ export function useChat() {
     }
   }, [])
 
+  // Функция сбрасывает эмоцию в neutral через 4 секунды после того, как Йен перестала
+  // говорить и печатать — таймер стартует только когда аудио реально закончилось.
+  useEffect(() => {
+    if (isPlaying || isYenTyping || mood === 'neutral') {
+      return undefined
+    }
+    if (moodTimerRef.current) clearTimeout(moodTimerRef.current)
+    moodTimerRef.current = window.setTimeout(() => {
+      if (isMountedRef.current) setMood('neutral')
+    }, 4000)
+    return () => {
+      if (moodTimerRef.current) {
+        clearTimeout(moodTimerRef.current)
+        moodTimerRef.current = null
+      }
+    }
+  }, [isPlaying, isYenTyping, mood])
+
   // Функция синхронизирует историю с localStorage (не более MAX_STORED_MESSAGES записей).
   useEffect(() => {
     saveChatHistoryToStorage(messages)
@@ -301,12 +319,6 @@ export function useChat() {
       } finally {
         if (isMountedRef.current) {
           setIsYenTyping(false)
-          // После завершения всей цепочки (включая воспроизведение аудио) показываем
-          // эмоцию ещё 4 секунды, затем возвращаем лицо в нейтральное состояние.
-          if (moodTimerRef.current) clearTimeout(moodTimerRef.current)
-          moodTimerRef.current = window.setTimeout(() => {
-            if (isMountedRef.current) setMood('neutral')
-          }, 4000)
         }
       }
     },

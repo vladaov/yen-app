@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 // Пауза без новых результатов распознавания (мс), после которой запись останавливается.
-const SILENCE_MS = 1200
+const SILENCE_MS = 3000
 
 // Ошибки API, которые не показываем пользователю (штатное завершение или отмена).
 const SILENT_SPEECH_ERRORS = new Set(['aborted', 'no-speech'])

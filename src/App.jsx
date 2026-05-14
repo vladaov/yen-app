@@ -22,6 +22,7 @@ function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('agent-theme') ?? 'dark')
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [showChat, setShowChat] = useState(readShowChatFromStorage)
+  const [chatExpanded, setChatExpanded] = useState(false)
   const [inputMode, setInputMode] = useState('voice')
 
   const { messages, isSpeaking, isYenTyping, mood, sendMessage, voiceEnabled, setVoiceEnabled } = useChat()
@@ -29,7 +30,6 @@ function App() {
 
   const handleSendMessage = useCallback((text) => {
     sendMessage(text)
-    setShowChat(true)
   }, [sendMessage])
 
   useEffect(() => {
@@ -51,15 +51,10 @@ function App() {
       ? 'speaking'
       : isYenTyping
         ? 'thinking'
-        : mood === 'happy' || mood === 'sad' || mood === 'surprised'
-          ? mood
-          : 'idle'
-
-  const bubbleVisible = isYenTyping
-  const bubbleText = isYenTyping ? 'Йен набирает...' : ''
+        : 'idle'
 
   return (
-    <div className="yen-app">
+    <div className={`yen-app${chatExpanded ? ' yen-app--chat-mode' : ''}`}>
       <SettingsModal
         open={settingsOpen}
         onOpen={() => setSettingsOpen(true)}
@@ -72,19 +67,27 @@ function App() {
         onToggleShowChat={() => setShowChat((previous) => !previous)}
       />
 
-      <div className="yen-face-area">
-        <YenFace mood={faceMood} emotion={mood} />
-      </div>
-
-      <div className="yen-middle">
-        <div className={`yen-bubble ${bubbleVisible ? 'yen-bubble--vis' : ''}`}>{bubbleText}</div>
-      </div>
+      {!chatExpanded && (
+        <div className="yen-face-area">
+          <YenFace mood={faceMood} emotion={mood} />
+        </div>
+      )}
 
       <div className="yen-controls">
-        <ChatArea messages={messages} isYenTyping={isYenTyping} visible={showChat} />
+        <ChatArea
+          messages={messages}
+          isYenTyping={isYenTyping}
+          visible={showChat}
+          expanded={chatExpanded}
+          onExpand={() => setChatExpanded((prev) => !prev)}
+        />
         <MessageInput
           mode={inputMode}
-          onModeVoice={() => setInputMode('voice')}
+          onModeVoice={() => {
+            setInputMode('voice')
+            setShowChat(false)
+            setChatExpanded(false)
+          }}
           onModeText={() => {
             setInputMode('text')
             setShowChat(true)

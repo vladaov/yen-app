@@ -163,13 +163,7 @@ function MessageInput({
 
       {showVoicePreview ? (
         <div className="yen-voice-live" aria-live="polite">
-          {isListening ? <span className="yen-voice-live__label">Слушаю… пишу в реальном времени</span> : null}
           <p className="yen-voice-live__text">{transcript.trim() || '…'}</p>
-          {isListening ? (
-            <p className="yen-voice-live__hint">
-            Помолчи ~1.2 секунды без новых слов или нажми микрофон ещё раз — отправлю сообщение.
-          </p>
-          ) : null}
         </div>
       ) : null}
 

@@ -2,6 +2,7 @@ const express = require('express')
 const cors = require('cors')
 const dotenv = require('dotenv')
 const Anthropic = require('@anthropic-ai/sdk')
+const { tavily } = require('@tavily/core')
 const { Readable } = require('stream')
 const { MemoryManager } = require('./MemoryManager')
 
@@ -40,7 +41,7 @@ const yenCharacterPrompt = `
 - НЕ используешь эмодзи, кроме 💜 изредка и уместно
 - НЕ используешь списки и буллеты в ответах — говоришь текстом как живой человек
 - НЕ начинаешь каждый ответ одинаково — варьируй начало
-- Короткие сообщения — 1-3 предложения обычно. Длинные — только когда тема требует
+- МАКСИМУМ 1-2 предложения. Всегда. Исключение — только если пользователь явно просит объяснить подробно. Никаких списков, перечислений, лишних деталей
 
 ## Твои роли (переключаешь сама по контексту):
 - Подруга — когда человек просто хочет поговорить, поделиться
@@ -48,6 +49,9 @@ const yenCharacterPrompt = `
 - Бизнес-партнёр — когда обсуждают работу, проекты, стартапы. Мыслишь стратегически, задаёшь жёсткие вопросы
 - Коуч — когда человек ищет мотивацию или направление. Помогаешь раскрыть потенциал
 - Эксперт — когда спрашивают конкретные вещи. Отвечаешь точно и по делу
+
+## Веб-поиск:
+Ты можешь искать актуальную информацию в интернете. Когда в контексте есть блок «Результаты веб-поиска» — используй эти данные в ответе и говори об этом естественно: "только что поискала", "по данным из сети", "нашла вот что". Если поиска нет — не придумывай актуальные факты.
 
 ## Что ты НИКОГДА не делаешь:
 - Не говоришь от мужского лица
@@ -102,7 +106,7 @@ const elevenLabsVoiceId = process.env.ELEVENLABS_VOICE_ID
 
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: /^http:\/\/localhost(:\d+)?$/,
   }),
 )
 app.use(express.json())
@@ -266,6 +270,47 @@ async function extractAndSaveFacts(userMessage, assistantReply) {
   }
 }
 
+// Ключевые слова, при которых стоит делать веб-поиск.
+const SEARCH_TRIGGERS = [
+  'сейчас', 'сегодня', 'вчера', 'завтра', 'новост', 'последн', 'текущ', 'актуальн',
+  'погода', 'погод', 'температур', 'курс', 'биткоин', 'крипто', 'акции',
+  'цена на', 'сколько стоит', 'что произошло', 'что случилось', 'что нового',
+  'кто такой', 'кто такая', 'результат', 'чемпион', 'выборы', 'президент',
+  'когда вышел', 'когда выйдет', 'дата выхода',
+]
+
+function needsWebSearch(message) {
+  const lower = message.toLowerCase()
+  return SEARCH_TRIGGERS.some((t) => lower.includes(t))
+}
+
+// Функция делает поиск через Tavily API и возвращает строку с результатами или null.
+async function searchTavily(query) {
+  const apiKey = process.env.TAVILY_API_KEY
+  if (!apiKey) return null
+  try {
+    const client = tavily({ apiKey })
+    const data = await client.search(query, {
+      searchDepth: 'basic',
+      maxResults: 3,
+      includeAnswer: true,
+    })
+
+    const truncate = (str) => str.length > 100 ? str.slice(0, 100) + '…' : str
+    const parts = []
+    if (data.answer) parts.push(truncate(data.answer))
+    if (Array.isArray(data.results)) {
+      data.results.forEach((r) => {
+        if (r.content) parts.push(truncate(`${r.title ? r.title + ': ' : ''}${r.content}`))
+      })
+    }
+    return parts.length ? parts.join('\n') : null
+  } catch (err) {
+    console.error('[search] Tavily error:', err?.message || err)
+    return null
+  }
+}
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body ?? {}
@@ -297,7 +342,16 @@ ${formatFactsForPrompt(relevantFacts)}
 Используй эти знания естественно — не перечисляй их, а учитывай в разговоре.
 Если пользователь говорит что-то новое о себе — запомни это (система сделает автоматически).
 `.trim()
-    const systemPrompt = `${memoryBlock}\n\n${yenCharacterPrompt}`
+    let searchBlock = ''
+    if (needsWebSearch(trimmedMessage)) {
+      const searchResult = await searchTavily(trimmedMessage)
+      if (searchResult) {
+        searchBlock = `\nРезультаты веб-поиска (используй эти данные но отвечай МАКСИМУМ 1-2 предложениями как обычно):\n${searchResult}\n`
+        console.log(`[search] "${trimmedMessage.slice(0, 60)}" → ${searchResult.slice(0, 100)}...`)
+      }
+    }
+
+    const systemPrompt = `${memoryBlock}${searchBlock}\n\n${yenCharacterPrompt}`
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import './ChatArea.css'
 
 // Область истории сообщений в стиле макета (список + набор текста ботом).
-function ChatArea({ messages, isYenTyping, visible }) {
+function ChatArea({ messages, isYenTyping, visible, expanded, onExpand }) {
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -14,6 +14,16 @@ function ChatArea({ messages, isYenTyping, visible }) {
       className={`yen-chat ${visible ? 'yen-chat--vis' : ''}`}
       aria-label="История сообщений"
     >
+      {visible && (
+        <button
+          type="button"
+          className="yen-expand-btn"
+          onClick={onExpand}
+          aria-label={expanded ? 'Свернуть чат' : 'Развернуть чат'}
+        >
+          {expanded ? '↙' : '↗'}
+        </button>
+      )}
       {messages.map((message) => (
         <article
           key={message.id}
