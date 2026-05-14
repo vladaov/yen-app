@@ -4,6 +4,11 @@ const dotenv = require('dotenv')
 const Anthropic = require('@anthropic-ai/sdk')
 const { tavily } = require('@tavily/core')
 const { Readable } = require('stream')
+const path = require('path')
+const { randomUUID } = require('crypto')
+const multer = require('multer')
+const pdfParse = require('pdf-parse')
+const mammoth = require('mammoth')
 const { MemoryManager } = require('./MemoryManager')
 
 dotenv.config()
@@ -110,6 +115,81 @@ app.use(
   }),
 )
 app.use(express.json())
+
+// ── Загрузка файлов ──────────────────────────────────────────────────────────
+
+const ALLOWED_MIME = new Set([
+  'image/jpeg', 'image/png', 'image/webp',
+  'application/pdf',
+  'text/plain',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+])
+const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.pdf', '.txt', '.docx'])
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase()
+    if (!ALLOWED_MIME.has(file.mimetype) || !ALLOWED_EXT.has(ext)) {
+      return cb(Object.assign(new Error('Недопустимый тип файла. Разрешены: jpg, png, webp, pdf, txt, docx'), { status: 400 }))
+    }
+    cb(null, true)
+  },
+})
+
+// Временное хранилище загруженных файлов (живут 1 час, потребляются при /api/chat).
+const fileStore = new Map()
+setInterval(() => {
+  const cutoff = Date.now() - 3_600_000
+  for (const [id, entry] of fileStore) {
+    if (entry.uploadedAt < cutoff) fileStore.delete(id)
+  }
+}, 3_600_000)
+
+// Функция извлекает текст из документа (PDF, DOCX, TXT).
+async function extractTextFromDocument(file) {
+  try {
+    if (file.mimetype === 'application/pdf') {
+      const data = await pdfParse(file.buffer)
+      return data.text.trim().slice(0, 8000)
+    }
+    if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      const result = await mammoth.extractRawText({ buffer: file.buffer })
+      return result.value.trim().slice(0, 8000)
+    }
+    if (file.mimetype === 'text/plain') {
+      return file.buffer.toString('utf-8').trim().slice(0, 8000)
+    }
+    return ''
+  } catch (err) {
+    console.error('[upload] Ошибка извлечения текста:', err?.message)
+    return ''
+  }
+}
+
+// POST /api/upload — принимает файл, кладёт в fileStore, возвращает fileId.
+app.post('/api/upload', (req, res, next) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      const status = err.code === 'LIMIT_FILE_SIZE' ? 413 : (err.status || 400)
+      const message = err.code === 'LIMIT_FILE_SIZE' ? 'Файл слишком большой. Максимум 10 МБ.' : err.message
+      return res.status(status).json({ error: message })
+    }
+    next()
+  })
+}, (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Файл не получен.' })
+  const fileId = randomUUID()
+  fileStore.set(fileId, {
+    buffer: req.file.buffer,
+    mimetype: req.file.mimetype,
+    originalname: req.file.originalname,
+    uploadedAt: Date.now(),
+  })
+  console.log(`[upload] ${req.file.originalname} (${req.file.mimetype}, ${req.file.size}b) → ${fileId}`)
+  res.json({ fileId, name: req.file.originalname })
+})
 
 app.post('/api/tts', async (req, res) => {
   try {
@@ -332,8 +412,44 @@ app.post('/api/chat', async (req, res) => {
           .map((item) => ({ role: item.role, content: item.content.trim() }))
       : []
 
-    const trimmedMessage = message.trim()
-    const messages = [...safeHistory, { role: 'user', content: trimmedMessage }]
+    // Извлекаем ссылку на файл из сообщения, если она есть.
+    const FILE_REF_RE = /\s*\[file:([0-9a-f-]{36})\]\s*/
+    const fileRefMatch = message.trim().match(FILE_REF_RE)
+    const attachedFile = fileRefMatch ? fileStore.get(fileRefMatch[1]) : null
+    if (fileRefMatch && fileRefMatch[1]) fileStore.delete(fileRefMatch[1])
+    const cleanMessage = message.trim().replace(FILE_REF_RE, '').trim()
+
+    if (!cleanMessage && !attachedFile) {
+      return res.status(400).json({ error: 'Пустое сообщение.' })
+    }
+
+    const trimmedMessage = cleanMessage || `Опиши файл "${attachedFile?.originalname}"`
+
+    // Строим содержимое сообщения пользователя для Claude.
+    let userContent
+    if (attachedFile && attachedFile.mimetype.startsWith('image/')) {
+      userContent = [
+        {
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: attachedFile.mimetype,
+            data: attachedFile.buffer.toString('base64'),
+          },
+        },
+        { type: 'text', text: cleanMessage || 'Что на этом изображении?' },
+      ]
+    } else if (attachedFile) {
+      const extracted = await extractTextFromDocument(attachedFile)
+      const fileBlock = extracted
+        ? `[Файл "${attachedFile.originalname}":\n${extracted}]`
+        : `[Файл "${attachedFile.originalname}" — не удалось извлечь текст]`
+      userContent = cleanMessage ? `${cleanMessage}\n\n${fileBlock}` : fileBlock
+    } else {
+      userContent = trimmedMessage
+    }
+
+    const messages = [...safeHistory, { role: 'user', content: userContent }]
     const relevantFacts = memoryManager.getRelevantFacts(trimmedMessage)
     const memoryBlock = `
 Вот что ты знаешь о пользователе:

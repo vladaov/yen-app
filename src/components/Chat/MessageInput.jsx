@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import './MessageInput.css'
 
 const VOICE_WAVE_BARS = 7
+const UPLOAD_URL = 'http://localhost:3001/api/upload'
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf', 'text/plain',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+const MAX_FILE_SIZE = 10 * 1024 * 1024
 
 function IconChat() {
   return (
@@ -48,6 +52,14 @@ function IconSend() {
   )
 }
 
+function IconPaperclip() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+    </svg>
+  )
+}
+
 // Поле ввода: голос (живой текст + автоотправка после паузы/стопа) и текст по макету.
 function MessageInput({
   mode,
@@ -65,6 +77,10 @@ function MessageInput({
 }) {
   const [value, setValue] = useState('')
   const [waveVisible, setWaveVisible] = useState(false)
+  const [attachedFile, setAttachedFile] = useState(null) // { name, fileId }
+  const [fileUploading, setFileUploading] = useState(false)
+  const [fileError, setFileError] = useState('')
+  const fileInputRef = useRef(null)
   const transcriptRef = useRef('')
   const hadListeningSessionRef = useRef(false)
   const onSendRef = useRef(onSend)
@@ -125,13 +141,48 @@ function MessageInput({
     return () => window.clearTimeout(timer)
   }, [isListening])
 
-  const submitMessage = () => {
-    const trimmedValue = value.trim()
-    if (!trimmedValue) {
+  const handleFileSelect = async (event) => {
+    const file = event.target.files[0]
+    event.target.value = ''
+    if (!file) return
+
+    setFileError('')
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setFileError('Недопустимый тип. Разрешены: jpg, png, webp, pdf, txt, docx')
       return
     }
-    onSend(trimmedValue)
+    if (file.size > MAX_FILE_SIZE) {
+      setFileError('Файл больше 10 МБ')
+      return
+    }
+
+    setFileUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const response = await fetch(UPLOAD_URL, { method: 'POST', body: formData })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Ошибка загрузки')
+      setAttachedFile({ name: data.name, fileId: data.fileId })
+    } catch (err) {
+      setFileError(err.message)
+    } finally {
+      setFileUploading(false)
+    }
+  }
+
+  const submitMessage = () => {
+    const trimmedValue = value.trim()
+    if (!trimmedValue && !attachedFile) return
+
+    const text = attachedFile
+      ? `${trimmedValue} [file:${attachedFile.fileId}]`.trim()
+      : trimmedValue
+
+    onSend(text)
     setValue('')
+    setAttachedFile(null)
+    setFileError('')
   }
 
   const handleKeyDown = (event) => {
@@ -202,6 +253,22 @@ function MessageInput({
             onKeyDown={handleKeyDown}
             rows={1}
           />
+          <button
+            type="button"
+            className="yen-btn-round yen-btn-sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={fileUploading}
+            aria-label="Прикрепить файл"
+          >
+            <IconPaperclip />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp,.pdf,.txt,.docx"
+            style={{ display: 'none' }}
+            onChange={handleFileSelect}
+          />
           <button type="button" className="yen-btn-round yen-btn-send" onClick={submitMessage} aria-label="Отправить">
             <IconSend />
           </button>
@@ -214,6 +281,24 @@ function MessageInput({
             <IconMic />
           </button>
         </div>
+        {fileError && <p className="yen-input-error">{fileError}</p>}
+        {(fileUploading || attachedFile) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 12px', fontSize: '0.78rem', opacity: 0.75 }}>
+            {fileUploading
+              ? <span>Загружаю файл...</span>
+              : (
+                <>
+                  <span>📎 {attachedFile.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => { setAttachedFile(null); setFileError('') }}
+                    aria-label="Убрать файл"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: '0 2px', fontSize: '1rem', lineHeight: 1 }}
+                  >×</button>
+                </>
+              )}
+          </div>
+        )}
       </div>
     </div>
   )
