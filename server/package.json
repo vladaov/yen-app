@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.54.0",
+    "@supabase/supabase-js": "^2.105.4",
     "@tavily/core": "^0.7.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",

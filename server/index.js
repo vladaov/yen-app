@@ -9,13 +9,28 @@ const { randomUUID } = require('crypto')
 const multer = require('multer')
 const pdfParse = require('pdf-parse')
 const mammoth = require('mammoth')
+const { createClient } = require('@supabase/supabase-js')
 const { MemoryManager } = require('./MemoryManager')
 
 dotenv.config()
 
 const app = express()
 const port = 3001
-const memoryManager = new MemoryManager()
+
+// Supabase клиент — только если оба ключа заданы в .env. Иначе работает локально.
+const supabaseClient =
+  process.env.SUPABASE_URL && process.env.SUPABASE_KEY
+    ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY)
+    : null
+
+if (!supabaseClient) {
+  console.warn('[memory] SUPABASE_URL / SUPABASE_KEY не заданы — используется только memory.json')
+}
+
+const memoryManager = new MemoryManager(undefined, supabaseClient)
+
+// При старте тянем актуальные факты из Supabase в локальный файл.
+memoryManager.syncFromSupabase().catch(() => {})
 
 const yenCharacterPrompt = `
 Ты — Йен (Йенифер). Персональный AI-агент. Ты названа в честь Йенифер из Венгерберга из "Ведьмака".
