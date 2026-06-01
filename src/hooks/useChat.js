@@ -1,8 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { supabase } from '../lib/supabase'
 import { useAudioPlayer } from './useAudioPlayer'
 
 // Ключ localStorage для истории чата с Йен.
 const CHAT_HISTORY_KEY = 'yen-chat-history'
+
+// Возвращает Authorization-заголовок с токеном текущей сессии или пустой объект.
+async function getAuthHeaders() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.access_token) {
+      return { Authorization: `Bearer ${session.access_token}` }
+    }
+  } catch { /* игнорируем */ }
+  return {}
+}
 // Максимум сообщений в хранилище.
 const MAX_STORED_MESSAGES = 50
 // Ключ и событие для синхронизации включения голоса между компонентами без пропсов из App.
@@ -142,7 +154,8 @@ export function useChat() {
 
     async function fetchInitialGreeting() {
       try {
-        const response = await fetch('http://localhost:3001/api/memory')
+        const authHeaders = await getAuthHeaders()
+        const response = await fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:3001'}/api/memory`, { headers: authHeaders })
         if (!response.ok || cancelled || !isMountedRef.current) {
           throw new Error('memory fetch failed')
         }
@@ -253,11 +266,10 @@ export function useChat() {
         }))
 
       try {
-        const response = await fetch('http://localhost:3001/api/chat', {
+        const authHeaders = await getAuthHeaders()
+        const response = await fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:3001'}/api/chat`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
           body: JSON.stringify({
             message: trimmedText,
             history: historyForApi,

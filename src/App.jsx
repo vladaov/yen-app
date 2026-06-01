@@ -1,48 +1,45 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import ChatArea from './components/Chat/ChatArea'
 import MessageInput from './components/Chat/MessageInput'
-import SettingsModal from './components/Settings/SettingsModal'
+import SettingsDrawer from './components/SettingsDrawer/SettingsDrawer'
 import YenFace from './components/YenFace/YenFace'
+import { useAuth } from './hooks/useAuth'
 import { useChat } from './hooks/useChat'
 import { useSpeechRecognition } from './hooks/useSpeechRecognition'
+import CharacterSelectPage from './pages/CharacterSelectPage'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 
 const SHOW_CHAT_KEY = 'yen-show-chat'
+const CHARACTER_KEY = 'yen-character'
 
-// Функция читает, показывать ли панель чата (как в настройках макета).
 function readShowChatFromStorage() {
-  try {
-    return localStorage.getItem(SHOW_CHAT_KEY) === 'true'
-  } catch {
-    return false
-  }
+  try { return localStorage.getItem(SHOW_CHAT_KEY) === 'true' }
+  catch { return false }
 }
 
-// Главный экран Йен: лицо, статус-бабл, чат и ввод в стиле HTML-макета.
-function App() {
-  const [theme, setTheme] = useState(() => localStorage.getItem('agent-theme') ?? 'dark')
-  const [settingsOpen, setSettingsOpen] = useState(false)
-  const [showChat, setShowChat] = useState(readShowChatFromStorage)
+function YenApp() {
+  const [showSettings, setShowSettings] = useState(false)
+  const [showChat, setShowChat]         = useState(readShowChatFromStorage)
   const [chatExpanded, setChatExpanded] = useState(false)
-  const [inputMode, setInputMode] = useState('voice')
+  const [inputMode, setInputMode]       = useState('voice')
+  const navigate = useNavigate()
 
-  const { messages, isSpeaking, isYenTyping, mood, sendMessage, voiceEnabled, setVoiceEnabled } = useChat()
+  const { messages, isSpeaking, isYenTyping, mood, sendMessage } = useChat()
   const speech = useSpeechRecognition()
 
-  const handleSendMessage = useCallback((text) => {
-    sendMessage(text)
-  }, [sendMessage])
+  const handleSendMessage = useCallback((text) => sendMessage(text), [sendMessage])
+
+  // Sync showChat from localStorage when drawer closes (user may have toggled it)
+  const handleDrawerClose = useCallback(() => {
+    setShowSettings(false)
+    setShowChat(readShowChatFromStorage())
+  }, [])
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('agent-theme', theme)
-  }, [theme])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(SHOW_CHAT_KEY, showChat ? 'true' : 'false')
-    } catch {
-      // игнорируем
-    }
+    try { localStorage.setItem(SHOW_CHAT_KEY, showChat ? 'true' : 'false') }
+    catch { /* ignore */ }
   }, [showChat])
 
   const faceMood = speech.isListening
@@ -54,18 +51,21 @@ function App() {
         : 'idle'
 
   return (
-    <div className={`yen-app${chatExpanded ? ' yen-app--chat-mode' : ''}`}>
-      <SettingsModal
-        open={settingsOpen}
-        onOpen={() => setSettingsOpen(true)}
-        onClose={() => setSettingsOpen(false)}
-        theme={theme}
-        onToggleTheme={() => setTheme((previous) => (previous === 'dark' ? 'light' : 'dark'))}
-        voiceEnabled={voiceEnabled}
-        onToggleVoice={() => setVoiceEnabled((previous) => !previous)}
-        showChat={showChat}
-        onToggleShowChat={() => setShowChat((previous) => !previous)}
-      />
+    <>
+      <SettingsDrawer open={showSettings} onClose={handleDrawerClose} />
+
+      {!showSettings && (
+        <button
+          type="button"
+          onClick={() => setShowSettings(true)}
+          aria-label="Настройки"
+          style={{ position: 'fixed', top: 16, right: 16, left: 'auto', width: 28, height: 28, background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', opacity: 0.3, zIndex: 9999, color: 'white', fontSize: 28 }}
+        >
+          ⚙
+        </button>
+      )}
+
+      <div className={`yen-app${chatExpanded ? ' yen-app--chat-mode' : ''}`}>
 
       {!chatExpanded && (
         <div className="yen-face-area">
@@ -83,17 +83,10 @@ function App() {
         />
         <MessageInput
           mode={inputMode}
-          onModeVoice={() => {
-            setInputMode('voice')
-            setShowChat(false)
-            setChatExpanded(false)
-          }}
-          onModeText={() => {
-            setInputMode('text')
-            setShowChat(true)
-          }}
+          onModeVoice={() => { setInputMode('voice'); setShowChat(false); setChatExpanded(false) }}
+          onModeText={() => { setInputMode('text'); setShowChat(true) }}
           showChat={showChat}
-          onToggleShowChat={() => setShowChat((previous) => !previous)}
+          onToggleShowChat={() => setShowChat((prev) => !prev)}
           onSend={handleSendMessage}
           isListening={speech.isListening}
           transcript={speech.transcript}
@@ -104,6 +97,51 @@ function App() {
         />
       </div>
     </div>
+  </>
+  )
+}
+
+function RequireAuth({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return <AuthSpinner />
+  return user ? children : <Navigate to="/login" replace />
+}
+
+function RequireCharacter({ children }) {
+  const character = localStorage.getItem(CHARACTER_KEY)
+  return character ? children : <Navigate to="/select-character" replace />
+}
+
+function RedirectIfAuth({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return <AuthSpinner />
+  return user ? <Navigate to="/select-character" replace /> : children
+}
+
+function AuthSpinner() {
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
+      <div style={{ width: 40, height: 40, borderRadius: '50%', border: '2px solid var(--accent)', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
+    </div>
+  )
+}
+
+function App() {
+  useEffect(() => {
+    const theme = localStorage.getItem('agent-theme') ?? 'dark'
+    document.documentElement.setAttribute('data-theme', theme)
+  }, [])
+
+  return (
+    <Routes>
+      <Route path="/login"    element={<RedirectIfAuth><LoginPage /></RedirectIfAuth>} />
+      <Route path="/register" element={<RedirectIfAuth><RegisterPage /></RedirectIfAuth>} />
+      <Route path="/select-character" element={<RequireAuth><CharacterSelectPage /></RequireAuth>} />
+      <Route path="/" element={
+        <RequireAuth><RequireCharacter><YenApp /></RequireCharacter></RequireAuth>
+      } />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
 

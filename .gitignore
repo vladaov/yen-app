@@ -12,9 +12,18 @@ dist
 dist-ssr
 *.local
 
-# Server secrets and runtime data
+# Env files
+.env
+.env.*
+!.env.example
 server/.env
+server/.env.*
+!server/.env.example
+
+# Server runtime data
 server/memory.json
+server/memory.json.salt
+*.salt
 
 # Editor directories and files
 .vscode/*

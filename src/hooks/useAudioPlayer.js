@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 
 // URL серверного эндпоинта синтеза речи.
-const TTS_URL = 'http://localhost:3001/api/tts'
+const TTS_URL = `${import.meta.env.VITE_API_URL ?? 'http://localhost:3001'}/api/tts`
 
 // Хук воспроизводит ответ Йен через серверный TTS (ElevenLabs).
 export function useAudioPlayer() {

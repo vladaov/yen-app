@@ -1,3 +1,25 @@
+/* ── шестерёнка — переход в /settings ────────────────────────────────────── */
+.yen-gear {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 100;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  color: #fff;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: opacity 0.15s;
+}
+
+.yen-gear:hover  { opacity: 0.6; }
+.yen-gear:active { opacity: 0.9; }
+
 /* ── кнопка переключения лицо ↔ чат ──────────────────────────────────────── */
 .yen-view-toggle {
   position: fixed;

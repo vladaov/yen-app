@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import './MessageInput.css'
 
 const VOICE_WAVE_BARS = 7
-const UPLOAD_URL = 'http://localhost:3001/api/upload'
+const UPLOAD_URL = `${import.meta.env.VITE_API_URL ?? 'http://localhost:3001'}/api/upload`
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf', 'text/plain',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
 const MAX_FILE_SIZE = 10 * 1024 * 1024

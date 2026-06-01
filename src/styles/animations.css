@@ -1,4 +1,8 @@
 /* Все @keyframes проекта в одном месте. */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 @keyframes chat-typing-dot {
   0%,
   80%,

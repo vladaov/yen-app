@@ -15,22 +15,103 @@ const { MemoryManager } = require('./MemoryManager')
 dotenv.config()
 
 const app = express()
-const port = 3001
+const port = process.env.PORT || 3001
 
-// Supabase клиент — только если оба ключа заданы в .env. Иначе работает локально.
+const SUPABASE_URL = process.env.SUPABASE_URL
+const SUPABASE_KEY = process.env.SUPABASE_KEY
+
+// Базовый клиент (anon key) — для верификации токенов пользователей.
 const supabaseClient =
-  process.env.SUPABASE_URL && process.env.SUPABASE_KEY
-    ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY)
+  SUPABASE_URL && SUPABASE_KEY
+    ? createClient(SUPABASE_URL, SUPABASE_KEY)
     : null
 
 if (!supabaseClient) {
-  console.warn('[memory] SUPABASE_URL / SUPABASE_KEY не заданы — используется только memory.json')
+  console.warn('[supabase] SUPABASE_URL / SUPABASE_KEY не заданы — работаем локально')
 }
 
 const memoryManager = new MemoryManager(undefined, supabaseClient)
 
-// При старте тянем актуальные факты из Supabase в локальный файл.
-memoryManager.syncFromSupabase().catch(() => {})
+// ── Supabase helpers ──────────────────────────────────────────────────────────
+
+// Создаёт Supabase-клиент, аутентифицированный токеном пользователя.
+// Это позволяет RLS-политикам работать с auth.uid().
+function createUserSupabase(accessToken) {
+  if (!SUPABASE_URL || !SUPABASE_KEY || !accessToken) return null
+  return createClient(SUPABASE_URL, SUPABASE_KEY, {
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    auth: { persistSession: false },
+  })
+}
+
+// Извлекает Bearer-токен из заголовка Authorization.
+function extractAccessToken(req) {
+  const header = req.headers.authorization ?? ''
+  return header.startsWith('Bearer ') ? header.slice(7) : null
+}
+
+// Верифицирует токен через Supabase и возвращает userId или null.
+async function getUserId(accessToken) {
+  if (!supabaseClient || !accessToken) return null
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser(accessToken)
+    return user?.id ?? null
+  } catch {
+    return null
+  }
+}
+
+// Кэш: userId → conversationId (живёт в памяти процесса).
+const userConversations = new Map()
+
+// Возвращает существующий или новый conversation_id для пользователя.
+async function getOrCreateConversation(userSupabase, userId) {
+  if (userConversations.has(userId)) return userConversations.get(userId)
+
+  try {
+    // Берём последний разговор пользователя
+    const { data: existing } = await userSupabase
+      .from('conversations')
+      .select('id')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    if (existing?.length) {
+      userConversations.set(userId, existing[0].id)
+      return existing[0].id
+    }
+
+    // Создаём новый разговор
+    const { data: created, error } = await userSupabase
+      .from('conversations')
+      .insert({ user_id: userId })
+      .select('id')
+      .single()
+
+    if (error) throw error
+    userConversations.set(userId, created.id)
+    return created.id
+  } catch (err) {
+    console.error('[conversations] Ошибка:', err?.message)
+    return null
+  }
+}
+
+// Fire-and-forget: сохраняет пару сообщений (user + assistant) в messages.
+async function saveMessagesToSupabase(userSupabase, userId, userText, assistantText, mood) {
+  try {
+    const conversationId = await getOrCreateConversation(userSupabase, userId)
+    if (!conversationId) return
+
+    await userSupabase.from('messages').insert([
+      { conversation_id: conversationId, role: 'user',      content: userText },
+      { conversation_id: conversationId, role: 'assistant', content: assistantText, mood },
+    ])
+  } catch (err) {
+    console.error('[messages] Ошибка сохранения:', err?.message)
+  }
+}
 
 const yenCharacterPrompt = `
 Ты — Йен (Йенифер). Персональный AI-агент. Ты названа в честь Йенифер из Венгерберга из "Ведьмака".
@@ -124,9 +205,22 @@ const anthropic = new Anthropic({
 const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY
 const elevenLabsVoiceId = process.env.ELEVENLABS_VOICE_ID
 
+const ALLOWED_ORIGINS = [
+  /^http:\/\/localhost(:\d+)?$/,
+  /^https:\/\/.*\.vercel\.app$/,
+  process.env.FRONTEND_URL,
+].filter(Boolean)
+
 app.use(
   cors({
-    origin: /^http:\/\/localhost(:\d+)?$/,
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true) // server-to-server / curl
+      const allowed = ALLOWED_ORIGINS.some((o) =>
+        o instanceof RegExp ? o.test(origin) : o === origin,
+      )
+      cb(allowed ? null : new Error('CORS'), allowed)
+    },
+    credentials: true,
   }),
 )
 app.use(express.json())
@@ -331,8 +425,8 @@ function formatFactsForPrompt(facts) {
     .join('\n')
 }
 
-// Функция в фоне извлекает факты из пары «сообщение пользователя — ответ Йен» и сохраняет их в память.
-async function extractAndSaveFacts(userMessage, assistantReply) {
+// Функция в фоне извлекает факты и сохраняет их — в Supabase (если есть userId) или локально.
+async function extractAndSaveFacts(userMessage, assistantReply, userId = null, userSupabase = null) {
   try {
     const extractionResponse = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
@@ -341,25 +435,33 @@ async function extractAndSaveFacts(userMessage, assistantReply) {
       messages: [
         {
           role: 'user',
-          content: `
-Пользователь: ${userMessage}
-Ответ Йен: ${assistantReply}
-`.trim(),
+          content: `Пользователь: ${userMessage}\nОтвет Йен: ${assistantReply}`,
         },
       ],
     })
 
     const extractedFacts = parseFactsFromText(getTextFromClaudeResponse(extractionResponse))
-    extractedFacts.forEach((fact) => {
+
+    for (const fact of extractedFacts) {
       if (
         fact &&
         typeof fact.category === 'string' &&
         typeof fact.key === 'string' &&
         typeof fact.value === 'string'
       ) {
-        memoryManager.addFact(fact.category.trim(), fact.key.trim(), fact.value.trim())
+        const cat = fact.category.trim()
+        const key = fact.key.trim()
+        const val = fact.value.trim()
+
+        if (userId && userSupabase) {
+          // Облачное сохранение per-user
+          await memoryManager.upsertUserFact(userSupabase, userId, cat, key, val)
+        } else {
+          // Локальный fallback
+          memoryManager.addFact(cat, key, val)
+        }
       }
-    })
+    }
   } catch (err) {
     console.error('Фоновое извлечение фактов не удалось:', err?.message || err)
   }
@@ -414,6 +516,11 @@ app.post('/api/chat', async (req, res) => {
       return res.status(400).json({ error: 'Поле message обязательно и должно быть строкой.' })
     }
 
+    // ── Аутентификация пользователя ──
+    const accessToken  = extractAccessToken(req)
+    const userId       = await getUserId(accessToken)
+    const userSupabase = userId ? createUserSupabase(accessToken) : null
+
     const safeHistory = Array.isArray(history)
       ? history
           .slice(-20)
@@ -464,8 +571,16 @@ app.post('/api/chat', async (req, res) => {
       userContent = trimmedMessage
     }
 
-    const messages = [...safeHistory, { role: 'user', content: userContent }]
-    const relevantFacts = memoryManager.getRelevantFacts(trimmedMessage)
+    // ── Загрузка памяти ──
+    // Если пользователь аутентифицирован — берём его облачную память, иначе локальный файл.
+    let relevantFacts
+    if (userId && userSupabase) {
+      const userMemory = await memoryManager.loadUserFacts(userSupabase, userId)
+      relevantFacts = memoryManager.getRelevantFromMemoryObject(userMemory, trimmedMessage)
+    } else {
+      relevantFacts = memoryManager.getRelevantFacts(trimmedMessage)
+    }
+
     const memoryBlock = `
 Вот что ты знаешь о пользователе:
 ${formatFactsForPrompt(relevantFacts)}
@@ -473,6 +588,7 @@ ${formatFactsForPrompt(relevantFacts)}
 Используй эти знания естественно — не перечисляй их, а учитывай в разговоре.
 Если пользователь говорит что-то новое о себе — запомни это (система сделает автоматически).
 `.trim()
+
     let searchBlock = ''
     if (needsWebSearch(trimmedMessage)) {
       const searchResult = await searchTavily(trimmedMessage)
@@ -483,6 +599,8 @@ ${formatFactsForPrompt(relevantFacts)}
     }
 
     const systemPrompt = `${memoryBlock}${searchBlock}\n\n${yenCharacterPrompt}`
+
+    const messages = [...safeHistory, { role: 'user', content: userContent }]
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
@@ -497,7 +615,12 @@ ${formatFactsForPrompt(relevantFacts)}
     const reply = moodMatch ? rawReply.slice(moodMatch[0].length).trim() : rawReply
 
     res.json({ reply, mood })
-    void extractAndSaveFacts(trimmedMessage, reply)
+
+    // Fire-and-forget: извлечь факты + сохранить сообщения
+    void extractAndSaveFacts(trimmedMessage, reply, userId, userSupabase)
+    if (userId && userSupabase) {
+      void saveMessagesToSupabase(userSupabase, userId, trimmedMessage, reply, mood)
+    }
   } catch (error) {
     const apiMessage =
       error?.error?.message || error?.message || 'Внутренняя ошибка сервера при обращении к Йен.'
@@ -505,8 +628,17 @@ ${formatFactsForPrompt(relevantFacts)}
   }
 })
 
-app.get('/api/memory', (req, res) => {
+app.get('/api/memory', async (req, res) => {
   try {
+    const accessToken  = extractAccessToken(req)
+    const userId       = await getUserId(accessToken)
+    const userSupabase = userId ? createUserSupabase(accessToken) : null
+
+    if (userId && userSupabase) {
+      const facts = await memoryManager.loadUserFacts(userSupabase, userId)
+      return res.json({ facts })
+    }
+
     return res.json({ facts: memoryManager.getAllFacts() })
   } catch (error) {
     const apiMessage = error?.message || 'Не удалось получить память.'
