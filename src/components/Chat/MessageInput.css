@@ -1,19 +1,15 @@
-/* ── Shared root ─────────────────────────────────────────── */
+/* ── Root — in-flow by default (desktop) ─────────────────── */
 .mi-root {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
+  width: 100%;
 }
 
-/* ── VOICE MODE ──────────────────────────────────────────── */
+/* ── VOICE MODE — desktop default ────────────────────────── */
 .mi-root--voice {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  padding: 12px 16px 16px;
   background: transparent;
 }
 
@@ -44,19 +40,10 @@
   padding-bottom: 4px;
 }
 
-/* ── TEXT MODE ───────────────────────────────────────────── */
+/* ── TEXT MODE — desktop default ─────────────────────────── */
 .mi-root--text {
-  padding: 8px 12px;
-  padding-bottom: max(8px, env(safe-area-inset-bottom));
-  background: rgba(8, 7, 26, 0.96);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(139, 92, 246, 0.12);
-}
-
-html[data-theme='light'] .mi-root--text {
-  background: rgba(244, 241, 251, 0.96);
-  border-top-color: rgba(155, 127, 212, 0.15);
+  padding: 8px 0;
+  border-top: 1px solid var(--btn-border);
 }
 
 /* Row: ✕ | [box] | 📎 🎤 */
@@ -64,8 +51,6 @@ html[data-theme='light'] .mi-root--text {
   display: flex;
   align-items: center;
   gap: 6px;
-  max-width: min(700px, 100%);
-  margin: 0 auto;
 }
 
 /* Input box */
@@ -101,7 +86,7 @@ html[data-theme='light'] .mi-root--text {
   padding: 0;
   color: var(--text);
   font-family: var(--font-family-base);
-  font-size: 16px; /* 16px prevents iOS auto-zoom */
+  font-size: 15px;
   font-weight: 500;
   line-height: 1.45;
   min-height: 26px;
@@ -134,7 +119,6 @@ html[data-theme='light'] .mi-root--text {
   display: flex;
   align-items: center;
 }
-
 .mi-file-remove:hover { color: var(--rec-color); }
 
 /* Errors */
@@ -144,7 +128,6 @@ html[data-theme='light'] .mi-root--text {
   font-size: 0.88rem;
   text-align: center;
 }
-
 .mi-error--inline {
   margin: 4px 14px 0;
   text-align: left;
@@ -162,9 +145,7 @@ html[data-theme='light'] .mi-root--text {
   transition: color 0.15s, background 0.15s, transform 0.1s;
   flex-shrink: 0;
 }
-
 .mi-btn:active { transform: scale(0.9); }
-
 .mi-btn svg {
   stroke: currentColor;
   fill: none;
@@ -174,22 +155,14 @@ html[data-theme='light'] .mi-root--text {
   pointer-events: none;
 }
 
-/* Icon buttons (📎 🎤 outside the box, or inside actions) */
+/* Icon buttons — 📎 🎤 outside box */
 .mi-btn--icon {
   width: 38px;
   height: 38px;
   border-radius: 50%;
 }
-
-.mi-btn--icon svg {
-  width: 19px;
-  height: 19px;
-}
-
-.mi-btn--icon:hover {
-  background: var(--btn-hover);
-  color: var(--text);
-}
+.mi-btn--icon svg { width: 19px; height: 19px; }
+.mi-btn--icon:hover { background: var(--btn-hover); color: var(--text); }
 
 /* Send button — purple circle inside box */
 .mi-btn--send {
@@ -200,16 +173,10 @@ html[data-theme='light'] .mi-root--text {
   color: #fff;
   box-shadow: 0 2px 10px var(--face-glow);
 }
-
-.mi-btn--send svg {
-  width: 15px;
-  height: 15px;
-  stroke: #fff;
-}
-
+.mi-btn--send svg { width: 15px; height: 15px; stroke: #fff; }
 .mi-btn--send:hover { filter: brightness(1.12); }
 
-/* Round buttons (voice mode + text ✕) */
+/* Round buttons — voice mode controls */
 .mi-btn--round {
   width: 48px;
   height: 48px;
@@ -218,25 +185,17 @@ html[data-theme='light'] .mi-root--text {
   background: var(--btn-bg);
   color: var(--text2);
 }
+.mi-btn--round svg { width: 20px; height: 20px; }
+.mi-btn--round:hover { background: var(--btn-hover); color: var(--text); }
 
-.mi-btn--round svg {
-  width: 20px;
-  height: 20px;
-}
-
-.mi-btn--round:hover {
-  background: var(--btn-hover);
-  color: var(--text);
-}
-
-/* ✕ in text mode — smaller */
+/* ✕ in text mode row — smaller */
 .mi-row .mi-btn--round {
   width: 36px;
   height: 36px;
   font-size: 15px;
 }
 
-/* Big mic (voice mode) */
+/* Big mic */
 .mi-btn--mic-big {
   width: 68px;
   height: 68px;
@@ -246,12 +205,7 @@ html[data-theme='light'] .mi-root--text {
   color: var(--text);
   box-shadow: 0 2px 20px var(--face-glow);
 }
-
-.mi-btn--mic-big svg {
-  width: 28px;
-  height: 28px;
-}
-
+.mi-btn--mic-big svg { width: 28px; height: 28px; }
 .mi-btn--mic-big:hover {
   background: var(--accent);
   border-color: var(--accent);
@@ -275,7 +229,6 @@ html[data-theme='light'] .mi-root--text {
   gap: 4px;
   height: 32px;
 }
-
 .mi-wb {
   width: 3px;
   background: var(--accent);
@@ -283,7 +236,6 @@ html[data-theme='light'] .mi-root--text {
   transform-origin: center bottom;
   animation: mi-wave-bar 0.5s ease-in-out infinite alternate;
 }
-
 .mi-wb:nth-child(1) { height: 8px;  animation-delay: 0s;    }
 .mi-wb:nth-child(2) { height: 16px; animation-delay: 0.07s; }
 .mi-wb:nth-child(3) { height: 24px; animation-delay: 0.14s; }
@@ -297,8 +249,60 @@ html[data-theme='light'] .mi-root--text {
   0%, 100% { box-shadow: 0 0 0 0 var(--rec-glow); }
   50%       { box-shadow: 0 0 0 10px transparent;  }
 }
-
 @keyframes mi-wave-bar {
   from { transform: scaleY(0.4); }
   to   { transform: scaleY(1.2); }
+}
+
+/* ── MOBILE overrides (max-width: 768px) ─────────────────── */
+@media (max-width: 768px) {
+  .mi-root {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+  }
+
+  .mi-root--voice {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mi-root--text {
+    padding: 8px 12px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    background: rgba(8, 7, 26, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(139, 92, 246, 0.12);
+  }
+
+  html[data-theme='light'] .mi-root--text {
+    background: rgba(244, 241, 251, 0.96);
+    border-top-color: rgba(155, 127, 212, 0.15);
+  }
+
+  .mi-textarea {
+    font-size: 16px; /* prevents iOS auto-zoom */
+  }
+
+  .mi-btn--icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .mi-btn--round {
+    width: 48px;
+    height: 48px;
+  }
+
+  .mi-row .mi-btn--round {
+    width: 40px;
+    height: 40px;
+  }
+
+  .mi-btn--mic-big {
+    width: 72px;
+    height: 72px;
+  }
 }

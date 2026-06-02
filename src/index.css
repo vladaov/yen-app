@@ -2,7 +2,6 @@
 @import './styles/animations.css';
 @import './styles/global.css';
 
-/* Корневой layout приложения Йен. */
 #root {
   height: 100dvh;
 }
@@ -12,7 +11,6 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 100vw;
   margin: 0 auto;
   position: relative;
   overflow: hidden;
@@ -20,52 +18,37 @@
   color: var(--text);
 }
 
-/* Face: 50% on small screens, up to 60% on larger */
+/* ── Face area — desktop default ─────────────────────────── */
 .yen-face-area {
-  flex: 0 0 clamp(48%, 55vh, 62%);
+  flex: 0 0 55%;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 0;
-  padding-top: env(safe-area-inset-top, 0px);
 }
 
-.yen-middle {
-  flex: 0 0 auto;
-  display: flex;
-  justify-content: center;
-  padding: 0 clamp(12px, 4vw, 24px);
-  min-height: 44px;
-}
-
-.yen-bubble {
-  background: var(--bubble-bg);
-  border: 1.5px solid var(--bubble-border);
-  border-radius: 20px;
-  padding: clamp(8px, 2vw, 12px) clamp(14px, 4vw, 24px);
-  font-size: clamp(13px, 3.5vw, 15px);
-  font-weight: 600;
-  color: var(--text);
-  max-width: min(400px, 85vw);
-  text-align: center;
-  opacity: 0;
-  transition: opacity 0.3s;
-  pointer-events: none;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-}
-
-.yen-bubble--vis {
-  opacity: 1;
-}
-
+/* ── Controls — desktop default ──────────────────────────── */
 .yen-controls {
   flex: 1;
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: min(600px, 100vw);
+  max-width: 600px;
   margin: 0 auto;
-  padding: 0 clamp(12px, 4vw, 24px) calc(100px + env(safe-area-inset-bottom, 0px));
+  padding: 0 24px 16px;
   justify-content: flex-end;
   min-height: 0;
+}
+
+/* ── Mobile overrides ────────────────────────────────────── */
+@media (max-width: 768px) {
+  .yen-face-area {
+    flex-basis: clamp(40%, 45vh, 52%);
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .yen-controls {
+    max-width: 100%;
+    padding: 0 12px calc(90px + env(safe-area-inset-bottom, 0px));
+  }
 }
