@@ -18,7 +18,7 @@ const app = express()
 const port = process.env.PORT || 3001
 
 const SUPABASE_URL = process.env.SUPABASE_URL
-const SUPABASE_KEY = process.env.SUPABASE_KEY
+const SUPABASE_KEY = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY
 
 // Базовый клиент (anon key) — для верификации токенов пользователей.
 const supabaseClient =
