@@ -46,51 +46,65 @@
 
 /* ── TEXT MODE ───────────────────────────────────────────── */
 .mi-root--text {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
-  background: rgba(8, 7, 26, 0.95);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  padding: 8px 12px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  background: rgba(8, 7, 26, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid rgba(139, 92, 246, 0.12);
 }
 
 html[data-theme='light'] .mi-root--text {
-  background: rgba(244, 241, 251, 0.95);
+  background: rgba(244, 241, 251, 0.96);
   border-top-color: rgba(155, 127, 212, 0.15);
 }
 
-.mi-box {
-  flex: 1;
+/* Row: ✕ | [box] | 📎 🎤 */
+.mi-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   max-width: min(700px, 100%);
   margin: 0 auto;
+}
+
+/* Input box */
+.mi-box {
+  flex: 1;
+  min-width: 0;
   background: var(--input-bg);
   border: 1px solid var(--input-border);
-  border-radius: 16px;
-  overflow: hidden;
+  border-radius: 22px;
   transition: border-color 0.2s;
 }
 
 .mi-box:focus-within {
-  border-color: var(--accent);
+  border-color: rgba(139, 92, 246, 0.5);
 }
 
-/* ── Textarea ────────────────────────────────────────────── */
+/* Inner row: textarea + send */
+.mi-box-inner {
+  display: flex;
+  align-items: center;
+  padding: 5px 5px 5px 14px;
+  gap: 4px;
+}
+
+/* Textarea */
 .mi-textarea {
-  display: block;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   background: transparent;
   border: none;
   outline: none;
   resize: none;
-  padding: 12px 16px 4px;
+  padding: 0;
   color: var(--text);
   font-family: var(--font-family-base);
   font-size: 16px; /* 16px prevents iOS auto-zoom */
   font-weight: 500;
-  line-height: 1.5;
-  min-height: 44px;
+  line-height: 1.45;
+  min-height: 26px;
   max-height: 120px;
   overflow-y: auto;
 }
@@ -99,12 +113,12 @@ html[data-theme='light'] .mi-root--text {
   color: var(--text2);
 }
 
-/* ── File preview ────────────────────────────────────────── */
+/* File preview inside box */
 .mi-file-preview {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 16px 0;
+  padding: 6px 14px 0;
   font-size: 13px;
   color: var(--text2);
 }
@@ -121,11 +135,9 @@ html[data-theme='light'] .mi-root--text {
   align-items: center;
 }
 
-.mi-file-remove:hover {
-  color: var(--rec-color);
-}
+.mi-file-remove:hover { color: var(--rec-color); }
 
-/* ── Error ───────────────────────────────────────────────── */
+/* Errors */
 .mi-error {
   margin: 0 0 8px;
   color: var(--rec-color);
@@ -134,26 +146,11 @@ html[data-theme='light'] .mi-root--text {
 }
 
 .mi-error--inline {
-  margin: 4px 16px 0;
+  margin: 4px 14px 0;
   text-align: left;
 }
 
-/* ── Bottom action bar ───────────────────────────────────── */
-.mi-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 8px 8px;
-}
-
-.mi-actions-left,
-.mi-actions-right {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-/* ── Buttons (shared) ────────────────────────────────────── */
+/* ── Shared button base ───────────────────────────────────── */
 .mi-btn {
   display: flex;
   align-items: center;
@@ -166,9 +163,7 @@ html[data-theme='light'] .mi-root--text {
   flex-shrink: 0;
 }
 
-.mi-btn:active {
-  transform: scale(0.9);
-}
+.mi-btn:active { transform: scale(0.9); }
 
 .mi-btn svg {
   stroke: currentColor;
@@ -179,16 +174,16 @@ html[data-theme='light'] .mi-root--text {
   pointer-events: none;
 }
 
-/* Icon buttons inside the box */
+/* Icon buttons (📎 🎤 outside the box, or inside actions) */
 .mi-btn--icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
 }
 
 .mi-btn--icon svg {
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
 }
 
 .mi-btn--icon:hover {
@@ -196,27 +191,25 @@ html[data-theme='light'] .mi-root--text {
   color: var(--text);
 }
 
-/* Send button */
+/* Send button — purple circle inside box */
 .mi-btn--send {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   background: var(--accent);
   color: #fff;
-  box-shadow: 0 2px 12px var(--face-glow);
+  box-shadow: 0 2px 10px var(--face-glow);
 }
 
 .mi-btn--send svg {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   stroke: #fff;
 }
 
-.mi-btn--send:hover {
-  filter: brightness(1.1);
-}
+.mi-btn--send:hover { filter: brightness(1.12); }
 
-/* Round buttons (voice mode) */
+/* Round buttons (voice mode + text ✕) */
 .mi-btn--round {
   width: 48px;
   height: 48px;
@@ -234,6 +227,13 @@ html[data-theme='light'] .mi-root--text {
 .mi-btn--round:hover {
   background: var(--btn-hover);
   color: var(--text);
+}
+
+/* ✕ in text mode — smaller */
+.mi-row .mi-btn--round {
+  width: 36px;
+  height: 36px;
+  font-size: 15px;
 }
 
 /* Big mic (voice mode) */
@@ -265,35 +265,6 @@ html[data-theme='light'] .mi-root--text {
   border-color: var(--rec-color) !important;
   color: #fff !important;
   animation: mi-pulse 1.2s infinite;
-}
-
-/* Close button (text mode, right of box) */
-.mi-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  background: var(--btn-bg);
-  color: var(--text2);
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-  flex-shrink: 0;
-  transition: background 0.15s, color 0.15s, transform 0.1s;
-  align-self: flex-end;
-  margin-bottom: 2px;
-}
-
-.mi-close:hover {
-  background: var(--btn-hover);
-  color: var(--text);
-}
-
-.mi-close:active {
-  transform: scale(0.9);
 }
 
 /* ── Voice wave ──────────────────────────────────────────── */

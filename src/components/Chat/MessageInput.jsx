@@ -235,70 +235,50 @@ function MessageInput({
     <div className="mi-root mi-root--text">
       {speechError && <p className="mi-error">{speechError}</p>}
 
-      <div className="mi-box">
-        {/* Textarea */}
-        <textarea
-          ref={textareaRef}
-          className="mi-textarea"
-          placeholder="Напиши что-нибудь..."
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          rows={1}
-          aria-label="Сообщение"
-        />
+      <div className="mi-row">
+        {/* Close text mode */}
+        <button
+          type="button"
+          className="mi-btn mi-btn--round"
+          onClick={onModeVoice}
+          aria-label="Закрыть ввод"
+        >
+          ✕
+        </button>
 
-        {/* Attachment preview */}
-        {(fileUploading || attachedFile) && (
-          <div className="mi-file-preview">
-            {fileUploading
-              ? <span>Загружаю...</span>
-              : (
-                <>
-                  <span>📎 {attachedFile.name}</span>
-                  <button
-                    type="button"
-                    className="mi-file-remove"
-                    onClick={() => { setAttachedFile(null); setFileError('') }}
-                    aria-label="Убрать файл"
-                  >×</button>
-                </>
-              )}
-          </div>
-        )}
+        {/* Input box */}
+        <div className="mi-box">
+          {(fileUploading || attachedFile) && (
+            <div className="mi-file-preview">
+              {fileUploading
+                ? <span>Загружаю...</span>
+                : (
+                  <>
+                    <span>📎 {attachedFile.name}</span>
+                    <button
+                      type="button"
+                      className="mi-file-remove"
+                      onClick={() => { setAttachedFile(null); setFileError('') }}
+                      aria-label="Убрать файл"
+                    >×</button>
+                  </>
+                )}
+            </div>
+          )}
 
-        {fileError && <p className="mi-error mi-error--inline">{fileError}</p>}
+          {fileError && <p className="mi-error mi-error--inline">{fileError}</p>}
 
-        {/* Bottom action bar */}
-        <div className="mi-actions">
-          <div className="mi-actions-left">
-            <button
-              type="button"
-              className="mi-btn mi-btn--icon"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={fileUploading}
-              aria-label="Прикрепить файл"
-            >
-              <IconPaperclip />
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".jpg,.jpeg,.png,.webp,.pdf,.txt,.docx"
-              style={{ display: 'none' }}
-              onChange={handleFileSelect}
+          <div className="mi-box-inner">
+            <textarea
+              ref={textareaRef}
+              className="mi-textarea"
+              placeholder="Сообщение..."
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              rows={1}
+              aria-label="Сообщение"
             />
-          </div>
-
-          <div className="mi-actions-right">
-            <button
-              type="button"
-              className={`mi-btn mi-btn--icon${isListening ? ' mi-btn--rec' : ''}`}
-              onClick={handleMic}
-              aria-label={isListening ? 'Остановить запись' : 'Голосовой ввод'}
-            >
-              <IconMic />
-            </button>
             {hasContent && (
               <button
                 type="button"
@@ -311,17 +291,35 @@ function MessageInput({
             )}
           </div>
         </div>
-      </div>
 
-      {/* Close text mode */}
-      <button
-        type="button"
-        className="mi-close"
-        onClick={onModeVoice}
-        aria-label="Закрыть ввод"
-      >
-        ✕
-      </button>
+        {/* Attachment */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".jpg,.jpeg,.png,.webp,.pdf,.txt,.docx"
+          style={{ display: 'none' }}
+          onChange={handleFileSelect}
+        />
+        <button
+          type="button"
+          className="mi-btn mi-btn--icon"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={fileUploading}
+          aria-label="Прикрепить файл"
+        >
+          <IconPaperclip />
+        </button>
+
+        {/* Mic */}
+        <button
+          type="button"
+          className={`mi-btn mi-btn--icon${isListening ? ' mi-btn--rec' : ''}`}
+          onClick={handleMic}
+          aria-label={isListening ? 'Остановить запись' : 'Голосовой ввод'}
+        >
+          <IconMic />
+        </button>
+      </div>
     </div>
   )
 }
