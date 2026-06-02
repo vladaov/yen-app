@@ -5,6 +5,86 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import './SettingsDrawer.css'
 
+// ── Bond level ────────────────────────────────────────────────
+const BOND_CATS = [
+  { key: 'личное',       icon: '👤', label: 'Личное' },
+  { key: 'работа',       icon: '💼', label: 'Работа' },
+  { key: 'цели',         icon: '🎯', label: 'Цели' },
+  { key: 'люди',         icon: '👥', label: 'Люди' },
+  { key: 'предпочтения', icon: '💜', label: 'Предпочтения' },
+]
+const BOND_LABELS = [
+  [80, 'Близкие друзья'],
+  [60, 'Друзья'],
+  [40, 'Приятели'],
+  [20, 'Знакомые'],
+  [0,  'Незнакомцы'],
+]
+function bondLabel(pct) {
+  return BOND_LABELS.find(([min]) => pct >= min)[1]
+}
+function catPct(facts, key) {
+  const cat = facts?.[key]
+  if (!cat || typeof cat !== 'object') return 0
+  return Math.min(100, Math.round((Object.keys(cat).length / 3) * 100))
+}
+
+const RING_R = 30
+const RING_CX = 40
+const RING_CY = 40
+const CIRC = 2 * Math.PI * RING_R // ≈ 188.5
+
+function BondLevel({ facts }) {
+  const catPcts = BOND_CATS.map((c) => ({ ...c, pct: catPct(facts, c.key) }))
+  const overall = Math.round(catPcts.reduce((s, c) => s + c.pct, 0) / BOND_CATS.length)
+  const dashOffset = CIRC * (1 - overall / 100)
+
+  return (
+    <div className="sd-bond">
+      <div className="sd-bond-ring-wrap">
+        <svg className="sd-bond-ring" viewBox="0 0 80 80" aria-hidden="true">
+          <defs>
+            <linearGradient id="bondGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stopColor="#7c3aed" />
+              <stop offset="100%" stopColor="#a78bfa" />
+            </linearGradient>
+          </defs>
+          <circle
+            className="sd-bond-ring-track"
+            cx={RING_CX} cy={RING_CY} r={RING_R}
+            fill="none" strokeWidth="7"
+          />
+          <circle
+            className="sd-bond-ring-fill"
+            cx={RING_CX} cy={RING_CY} r={RING_R}
+            fill="none" strokeWidth="7"
+            strokeDasharray={CIRC}
+            strokeDashoffset={dashOffset}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${RING_CX} ${RING_CY})`}
+          />
+        </svg>
+        <div className="sd-bond-ring-center">
+          <span className="sd-bond-pct">{overall}%</span>
+          <span className="sd-bond-lbl">{bondLabel(overall)}</span>
+        </div>
+      </div>
+
+      <div className="sd-bond-cats">
+        {catPcts.map((c) => (
+          <div key={c.key} className="sd-bond-cat">
+            <span className="sd-bond-cat-icon">{c.icon}</span>
+            <div className="sd-bond-bar-wrap">
+              <div className="sd-bond-bar-fill" style={{ width: `${c.pct}%` }} />
+            </div>
+            <span className="sd-bond-cat-pct">{c.pct}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 const VOICE_KEY     = 'yen-voice-enabled'
 const SHOW_CHAT_KEY = 'yen-show-chat'
 const THEME_KEY     = 'agent-theme'
@@ -111,6 +191,7 @@ export default function SettingsDrawer({ open, onClose }) {
   const [nameSaved, setNameSaved]     = useState(false)
   const [nameError, setNameError]     = useState('')
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [memoryFacts, setMemoryFacts] = useState(null)
 
   const savedTimerRef  = useRef(null)
   const touchStartXRef = useRef(null)
@@ -118,6 +199,26 @@ export default function SettingsDrawer({ open, onClose }) {
   const character = localStorage.getItem(CHAR_KEY)
   const email     = user?.email ?? ''
   const initials  = (displayName || email).slice(0, 2).toUpperCase()
+
+  // Fetch memory facts when drawer opens
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    async function fetchFacts() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const headers = session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : {}
+        const res = await fetch('/api/memory', { headers })
+        if (!res.ok || cancelled) return
+        const data = await res.json()
+        if (!cancelled) setMemoryFacts(data.facts ?? {})
+      } catch { /* ignore */ }
+    }
+    fetchFacts()
+    return () => { cancelled = true }
+  }, [open])
 
   // Lock body scroll when open
   useEffect(() => {
@@ -250,6 +351,9 @@ export default function SettingsDrawer({ open, onClose }) {
               <span className="sd-profile-email">{email}</span>
             </div>
           </div>
+
+          {/* Bond level */}
+          {memoryFacts !== null && <BondLevel facts={memoryFacts} />}
 
           {/* Accordion sections */}
           <div className="sd-sections">

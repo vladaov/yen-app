@@ -133,6 +133,103 @@
   text-overflow: ellipsis;
 }
 
+/* ── Bond level ───────────────────────────────────────────── */
+.sd-bond {
+  background: var(--bg);
+  border: 1px solid var(--btn-border);
+  border-radius: var(--radius-lg);
+  padding: 0.85rem 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sd-bond-ring-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+
+.sd-bond-ring {
+  width: 72px;
+  height: 72px;
+}
+
+.sd-bond-ring-track { stroke: var(--btn-border); }
+
+.sd-bond-ring-fill {
+  stroke: url(#bondGrad);
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.sd-bond-ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.sd-bond-pct {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1.1;
+}
+
+.sd-bond-lbl {
+  font-size: 0.48rem;
+  color: var(--text2);
+  text-align: center;
+  line-height: 1.2;
+  max-width: 48px;
+}
+
+.sd-bond-cats {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.sd-bond-cat {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sd-bond-cat-icon {
+  font-size: 0.75rem;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.sd-bond-bar-wrap {
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--btn-border);
+  overflow: hidden;
+}
+
+.sd-bond-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+  transition: width 0.6s ease;
+}
+
+.sd-bond-cat-pct {
+  font-size: 0.65rem;
+  color: var(--text2);
+  width: 26px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
 /* ── Sections ─────────────────────────────────────────────── */
 .sd-sections {
   background: var(--bg);
