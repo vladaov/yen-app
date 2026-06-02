@@ -10,10 +10,15 @@ const YEN_CHARACTER = {
 
 export default function CharacterSelectPage() {
   const navigate = useNavigate()
+  const hasCharacter = Boolean(localStorage.getItem('yen-character'))
 
   function handleSelectYen() {
     localStorage.setItem('yen-character', YEN_CHARACTER.id)
     navigate('/')
+  }
+
+  function handleCreateOwn() {
+    navigate('/create-character')
   }
 
   return (
@@ -37,8 +42,8 @@ export default function CharacterSelectPage() {
             </button>
           </div>
 
-          {/* Создать своего — заблокировано */}
-          <div className="cs-card cs-card--locked">
+          {/* Создать своего */}
+          <div className={`cs-card${hasCharacter ? ' cs-card--locked' : ''}`}>
             <div className="cs-face-wrap cs-face-wrap--placeholder">
               <span className="cs-placeholder-icon">＋</span>
             </div>
@@ -46,9 +51,15 @@ export default function CharacterSelectPage() {
               <h2 className="cs-card-name">Создать своего</h2>
               <p className="cs-card-desc">Настрой персонажа под себя: имя, характер, голос</p>
             </div>
-            <button className="cs-btn cs-btn--disabled" disabled>
-              Скоро
-            </button>
+            {hasCharacter ? (
+              <button className="cs-btn cs-btn--disabled" disabled title="У тебя уже есть компаньон">
+                Уже есть
+              </button>
+            ) : (
+              <button className="cs-btn cs-btn--primary" onClick={handleCreateOwn}>
+                Создать
+              </button>
+            )}
           </div>
         </div>
       </div>

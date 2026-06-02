@@ -8,6 +8,7 @@ import { useAuth } from './hooks/useAuth'
 import { useChat } from './hooks/useChat'
 import { useSpeechRecognition } from './hooks/useSpeechRecognition'
 import CharacterSelectPage from './pages/CharacterSelectPage'
+import CreateCharacterPage from './pages/CreateCharacterPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 
@@ -137,6 +138,7 @@ function App() {
       <Route path="/login"    element={<RedirectIfAuth><LoginPage /></RedirectIfAuth>} />
       <Route path="/register" element={<RedirectIfAuth><RegisterPage /></RedirectIfAuth>} />
       <Route path="/select-character" element={<RequireAuth><CharacterSelectPage /></RequireAuth>} />
+      <Route path="/create-character" element={<RequireAuth><CreateCharacterPage /></RequireAuth>} />
       <Route path="/" element={
         <RequireAuth><RequireCharacter><YenApp /></RequireCharacter></RequireAuth>
       } />

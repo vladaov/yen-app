@@ -267,12 +267,16 @@ export function useChat() {
 
       try {
         const authHeaders = await getAuthHeaders()
+        const character = localStorage.getItem('yen-character') || ''
+        const characterId = character.startsWith('custom:') ? character.slice(7) : undefined
+
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...authHeaders },
           body: JSON.stringify({
             message: trimmedText,
             history: historyForApi,
+            ...(characterId ? { characterId } : {}),
           }),
         })
 

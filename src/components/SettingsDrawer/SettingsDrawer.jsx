@@ -197,6 +197,11 @@ export default function SettingsDrawer({ open, onClose }) {
   const touchStartXRef = useRef(null)
 
   const character = localStorage.getItem(CHAR_KEY)
+  const characterName = character === 'yen'
+    ? 'Йен'
+    : character?.startsWith('custom:')
+      ? (localStorage.getItem('yen-character-name') || 'Свой компаньон')
+      : null
   const email     = user?.email ?? ''
   const initials  = (displayName || email).slice(0, 2).toUpperCase()
 
@@ -284,8 +289,19 @@ export default function SettingsDrawer({ open, onClose }) {
     }
   }
 
-  function handleDeleteAll() {
+  async function handleDeleteAll() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        await fetch('/api/memory', {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+      }
+    } catch { /* ignore */ }
     localStorage.removeItem(CHAR_KEY)
+    localStorage.removeItem('yen-character-name')
+    localStorage.removeItem('yen-character-color')
     localStorage.removeItem('yen-chat-history')
     localStorage.removeItem('yen-memory')
     setShowDeleteDialog(false)
@@ -295,6 +311,8 @@ export default function SettingsDrawer({ open, onClose }) {
 
   function handleDeleteKeepMemory() {
     localStorage.removeItem(CHAR_KEY)
+    localStorage.removeItem('yen-character-name')
+    localStorage.removeItem('yen-character-color')
     localStorage.removeItem('yen-chat-history')
     setShowDeleteDialog(false)
     onClose()
@@ -383,7 +401,7 @@ export default function SettingsDrawer({ open, onClose }) {
 
             <Section id="companion" open={openSection === 'companion'} onToggle={toggleSection} icon="✦" title="Компаньон">
               <div className="sd-companion-info">
-                <span className="sd-companion-name">{character === 'yen' ? 'Йен' : character ?? 'Не выбран'}</span>
+                <span className="sd-companion-name">{characterName ?? 'Не выбран'}</span>
                 {character === 'yen' && <span className="sd-companion-desc">Ироничная, прямая, заботливая</span>}
               </div>
               <div className="sd-companion-actions">

@@ -64,6 +64,27 @@ async function getUserId(accessToken) {
 // Кэш: userId → conversationId (живёт в памяти процесса).
 const userConversations = new Map()
 
+// Кэш: characterId → { prompt, ts } (TTL 5 минут).
+const characterPromptCache = new Map()
+const CHARACTER_CACHE_TTL = 5 * 60 * 1000
+
+async function getCharacterPrompt(userSupabase, characterId) {
+  const cached = characterPromptCache.get(characterId)
+  if (cached && Date.now() - cached.ts < CHARACTER_CACHE_TTL) return cached.prompt
+  try {
+    const { data } = await userSupabase
+      .from('characters')
+      .select('system_prompt')
+      .eq('id', characterId)
+      .single()
+    if (data?.system_prompt) {
+      characterPromptCache.set(characterId, { prompt: data.system_prompt, ts: Date.now() })
+      return data.system_prompt
+    }
+  } catch { /* fallback to Yen */ }
+  return null
+}
+
 // Возвращает существующий или новый conversation_id для пользователя.
 async function getOrCreateConversation(userSupabase, userId) {
   if (userConversations.has(userId)) return userConversations.get(userId)
@@ -493,9 +514,67 @@ async function searchTavily(query) {
   }
 }
 
+// ── POST /api/characters ─────────────────────────────────────────────────────
+app.post('/api/characters', async (req, res) => {
+  try {
+    const accessToken = extractAccessToken(req)
+    const userId = await getUserId(accessToken)
+    if (!userId) return res.status(401).json({ error: 'Не авторизован' })
+
+    const { name, personality, voice_id, color_scheme, system_prompt, user_address, formality } = req.body ?? {}
+    if (!name?.trim()) return res.status(400).json({ error: 'Имя обязательно' })
+    if (!system_prompt?.trim()) return res.status(400).json({ error: 'system_prompt обязателен' })
+
+    const userSupabase = createUserSupabase(accessToken)
+    const { data, error } = await userSupabase
+      .from('characters')
+      .insert({
+        user_id: userId,
+        name: name.trim(),
+        personality: personality ?? null,
+        voice_id: voice_id ?? null,
+        color_scheme: color_scheme ?? 'purple',
+        system_prompt: system_prompt.trim(),
+        user_address: user_address?.trim() ?? null,
+        formality: formality ?? 'ты',
+      })
+      .select('id')
+      .single()
+
+    if (error) {
+      console.error('[characters] Ошибка создания:', error.message)
+      return res.status(500).json({ error: error.message })
+    }
+    console.log(`[characters] Создан ${data.id} для user ${userId}`)
+    return res.json({ id: data.id })
+  } catch (err) {
+    return res.status(500).json({ error: err?.message || 'Ошибка сервера' })
+  }
+})
+
+// ── DELETE /api/memory ────────────────────────────────────────────────────────
+app.delete('/api/memory', async (req, res) => {
+  try {
+    const accessToken = extractAccessToken(req)
+    const userId = await getUserId(accessToken)
+    if (!userId) return res.status(401).json({ error: 'Не авторизован' })
+
+    const userSupabase = createUserSupabase(accessToken)
+    const { error } = await userSupabase
+      .from('memory_facts')
+      .delete()
+      .eq('user_id', userId)
+
+    if (error) return res.status(500).json({ error: error.message })
+    return res.json({ ok: true })
+  } catch (err) {
+    return res.status(500).json({ error: err?.message || 'Ошибка сервера' })
+  }
+})
+
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, history } = req.body ?? {}
+    const { message, history, characterId } = req.body ?? {}
 
     if (typeof message !== 'string' || !message.trim()) {
       return res.status(400).json({ error: 'Поле message обязательно и должно быть строкой.' })
@@ -583,7 +662,12 @@ ${formatFactsForPrompt(relevantFacts)}
       }
     }
 
-    const systemPrompt = `${memoryBlock}${searchBlock}\n\n${yenCharacterPrompt}`
+    let basePrompt = yenCharacterPrompt
+    if (characterId && userId && userSupabase) {
+      const customPrompt = await getCharacterPrompt(userSupabase, characterId)
+      if (customPrompt) basePrompt = customPrompt
+    }
+    const systemPrompt = `${memoryBlock}${searchBlock}\n\n${basePrompt}`
 
     const messages = [...safeHistory, { role: 'user', content: userContent }]
 
