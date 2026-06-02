@@ -188,18 +188,12 @@
 .mi-btn--round svg { width: 20px; height: 20px; }
 .mi-btn--round:hover { background: var(--btn-hover); color: var(--text); }
 
-/* ✕ inside box — inline close button */
-.mi-btn--close-inline {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  font-size: 13px;
-  line-height: 1;
-  color: var(--text2);
-  flex-shrink: 0;
-  opacity: 0.6;
+/* ✕ in text mode row — smaller */
+.mi-row .mi-btn--round {
+  width: 36px;
+  height: 36px;
+  font-size: 15px;
 }
-.mi-btn--close-inline:hover { color: var(--text); opacity: 1; }
 
 /* Big mic */
 .mi-btn--mic-big {
@@ -300,6 +294,11 @@
   .mi-btn--round {
     width: 48px;
     height: 48px;
+  }
+
+  .mi-row .mi-btn--round {
+    width: 40px;
+    height: 40px;
   }
 
   .mi-btn--mic-big {

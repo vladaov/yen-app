@@ -236,6 +236,16 @@ function MessageInput({
       {speechError && <p className="mi-error">{speechError}</p>}
 
       <div className="mi-row">
+        {/* Close text mode */}
+        <button
+          type="button"
+          className="mi-btn mi-btn--round"
+          onClick={onModeVoice}
+          aria-label="Закрыть ввод"
+        >
+          ✕
+        </button>
+
         {/* Input box */}
         <div className="mi-box">
           {(fileUploading || attachedFile) && (
@@ -259,15 +269,6 @@ function MessageInput({
           {fileError && <p className="mi-error mi-error--inline">{fileError}</p>}
 
           <div className="mi-box-inner">
-            {/* ✕ close — inside box, left edge */}
-            <button
-              type="button"
-              className="mi-btn mi-btn--close-inline"
-              onClick={onModeVoice}
-              aria-label="Закрыть ввод"
-            >
-              ✕
-            </button>
             <textarea
               ref={textareaRef}
               className="mi-textarea"

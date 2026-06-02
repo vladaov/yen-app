@@ -54,12 +54,12 @@ function YenApp() {
     <>
       <SettingsDrawer open={showSettings} onClose={handleDrawerClose} />
 
-      {!showSettings && !showChat && !chatExpanded && (
+      {!showSettings && (
         <button
           type="button"
-          className="yen-gear"
           onClick={() => setShowSettings(true)}
           aria-label="Настройки"
+          style={{ position: 'fixed', top: 'max(env(safe-area-inset-top, 12px), 12px)', right: 16, left: 'auto', width: 44, height: 44, background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', opacity: 0.3, zIndex: 9999, color: 'white', fontSize: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           ⚙
         </button>

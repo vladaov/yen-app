@@ -1,36 +1,24 @@
-/* ── шестерёнка ───────────────────────────────────────────── */
+/* ── шестерёнка — переход в /settings ────────────────────────────────────── */
 .yen-gear {
   position: fixed;
-  top: max(env(safe-area-inset-top, 12px), 12px);
+  top: 16px;
   right: 16px;
-  left: auto;
-  z-index: 9999;
-  width: 44px;
-  height: 44px;
+  z-index: 100;
   padding: 0;
+  margin: 0;
   border: none;
   background: transparent;
+  box-shadow: none;
   color: #fff;
-  font-size: 18px;
+  font-size: 28px;
   line-height: 1;
   cursor: pointer;
-  opacity: 0.15;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  opacity: 0.3;
   transition: opacity 0.15s;
 }
 
-.yen-gear:hover  { opacity: 0.3; }
-.yen-gear:active { opacity: 0.5; }
-
-@media (max-width: 768px) {
-  .yen-gear {
-    font-size: 14px;
-    width: 36px;
-    height: 36px;
-  }
-}
+.yen-gear:hover  { opacity: 0.6; }
+.yen-gear:active { opacity: 0.9; }
 
 /* ── кнопка переключения лицо ↔ чат ──────────────────────────────────────── */
 .yen-view-toggle {
