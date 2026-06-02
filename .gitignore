@@ -25,6 +25,15 @@ server/memory.json
 server/memory.json.salt
 *.salt
 
+# Claude Code internals
+.agents/
+.claude/
+.mcp.json
+skills-lock.json
+
+# Test / temp files
+server/test.mp3
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
