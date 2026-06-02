@@ -521,7 +521,7 @@ app.post('/api/characters', async (req, res) => {
     const userId = await getUserId(accessToken)
     if (!userId) return res.status(401).json({ error: 'Не авторизован' })
 
-    const { name, personality, voice_id, color_scheme, system_prompt, user_address, formality } = req.body ?? {}
+    const { name, personality, voice_id, color_scheme, system_prompt, user_address } = req.body ?? {}
     if (!name?.trim()) return res.status(400).json({ error: 'Имя обязательно' })
     if (!system_prompt?.trim()) return res.status(400).json({ error: 'system_prompt обязателен' })
 
@@ -536,7 +536,6 @@ app.post('/api/characters', async (req, res) => {
         color_scheme: color_scheme ?? 'purple',
         system_prompt: system_prompt.trim(),
         user_address: user_address?.trim() ?? null,
-        formality: formality ?? 'ты',
       })
       .select('id')
       .single()
