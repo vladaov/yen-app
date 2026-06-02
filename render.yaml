@@ -1,13 +1,12 @@
 services:
   - type: web
-    name: yen-server
+    name: yen-app
     runtime: node
-    rootDir: server
-    buildCommand: npm install
-    startCommand: node index.js
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
-      - key: PORT
-        value: 10000
+      - key: NODE_ENV
+        value: production
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: ELEVENLABS_API_KEY
@@ -19,6 +18,4 @@ services:
       - key: SUPABASE_KEY
         sync: false
       - key: SUPABASE_SALT
-        sync: false
-      - key: FRONTEND_URL
         sync: false

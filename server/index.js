@@ -1,18 +1,18 @@
+const path = require('path')
+const dotenv = require('dotenv')
+dotenv.config({ path: path.join(__dirname, '.env') })
+
 const express = require('express')
 const cors = require('cors')
-const dotenv = require('dotenv')
 const Anthropic = require('@anthropic-ai/sdk')
 const { tavily } = require('@tavily/core')
 const { Readable } = require('stream')
-const path = require('path')
 const { randomUUID } = require('crypto')
 const multer = require('multer')
 const pdfParse = require('pdf-parse')
 const mammoth = require('mammoth')
 const { createClient } = require('@supabase/supabase-js')
 const { MemoryManager } = require('./MemoryManager')
-
-dotenv.config()
 
 const app = express()
 const port = process.env.PORT || 3001
@@ -205,24 +205,9 @@ const anthropic = new Anthropic({
 const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY
 const elevenLabsVoiceId = process.env.ELEVENLABS_VOICE_ID
 
-const ALLOWED_ORIGINS = [
-  /^http:\/\/localhost(:\d+)?$/,
-  /^https:\/\/.*\.vercel\.app$/,
-  process.env.FRONTEND_URL,
-].filter(Boolean)
-
-app.use(
-  cors({
-    origin: (origin, cb) => {
-      if (!origin) return cb(null, true) // server-to-server / curl
-      const allowed = ALLOWED_ORIGINS.some((o) =>
-        o instanceof RegExp ? o.test(origin) : o === origin,
-      )
-      cb(allowed ? null : new Error('CORS'), allowed)
-    },
-    credentials: true,
-  }),
-)
+if (process.env.NODE_ENV !== 'production') {
+  app.use(cors({ origin: /^http:\/\/localhost(:\d+)?$/ }))
+}
 app.use(express.json())
 
 // ── Загрузка файлов ──────────────────────────────────────────────────────────
@@ -644,6 +629,16 @@ app.get('/api/memory', async (req, res) => {
     const apiMessage = error?.message || 'Не удалось получить память.'
     return res.status(500).json({ error: `Ошибка сервера: ${apiMessage}` })
   }
+})
+
+// ── Static frontend (production) ────────────────────────────────────────────
+const distPath = path.join(__dirname, '../dist')
+app.use(express.static(distPath))
+
+// SPA fallback — любой запрос не к /api отдаёт index.html
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) return next()
+  res.sendFile(path.join(distPath, 'index.html'))
 })
 
 app.listen(port, () => {

@@ -155,7 +155,7 @@ export function useChat() {
     async function fetchInitialGreeting() {
       try {
         const authHeaders = await getAuthHeaders()
-        const response = await fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:3001'}/api/memory`, { headers: authHeaders })
+        const response = await fetch('/api/memory', { headers: authHeaders })
         if (!response.ok || cancelled || !isMountedRef.current) {
           throw new Error('memory fetch failed')
         }
@@ -267,7 +267,7 @@ export function useChat() {
 
       try {
         const authHeaders = await getAuthHeaders()
-        const response = await fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:3001'}/api/chat`, {
+        const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...authHeaders },
           body: JSON.stringify({
