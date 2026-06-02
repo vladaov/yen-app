@@ -65,7 +65,7 @@
   width: 100%;
   max-width: min(600px, 100vw);
   margin: 0 auto;
-  padding: 0 clamp(12px, 4vw, 24px) calc(clamp(16px, 4vw, 24px) + env(safe-area-inset-bottom, 0px));
+  padding: 0 clamp(12px, 4vw, 24px) calc(100px + env(safe-area-inset-bottom, 0px));
   justify-content: flex-end;
   min-height: 0;
 }

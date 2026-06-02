@@ -1,256 +1,333 @@
-.yen-input-root {
+/* ── Shared root ─────────────────────────────────────────── */
+.mi-root {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+/* ── VOICE MODE ──────────────────────────────────────────── */
+.mi-root--voice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: transparent;
+}
+
+.mi-voice-preview {
+  max-width: min(500px, 90vw);
   width: 100%;
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-.yen-input-error {
-  margin: 0 0 10px;
-  color: var(--rec-color);
-  font-size: 0.9rem;
-}
-
-.yen-input-hint {
-  margin: 8px 0 0;
-  font-size: 0.8rem;
-  color: var(--text2);
-  text-align: center;
-}
-
-.yen-voice-live {
-  width: 100%;
-  margin-bottom: 14px;
-  padding: 12px 16px;
-  border-radius: 18px;
   background: var(--bubble-bg);
-  border: 1.5px solid var(--bubble-border);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--bubble-border);
+  border-radius: 16px;
+  padding: 10px 16px;
 }
 
-.yen-voice-live__label {
-  display: block;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--accent);
-  margin-bottom: 8px;
-}
-
-.yen-voice-live__text {
+.mi-voice-text {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  line-height: 1.45;
   color: var(--text);
+  line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
-  min-height: 1.4em;
 }
 
-.yen-voice-live__hint {
-  margin: 10px 0 0;
-  font-size: 0.78rem;
-  color: var(--text2);
-  line-height: 1.35;
-}
-
-.yen-vi {
-  display: none;
+.mi-voice-controls {
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  margin-bottom: 16px;
-  height: 30px;
+  gap: 20px;
+  padding-bottom: 4px;
 }
 
-.yen-vi--vis {
-  display: flex;
-}
-
-.yen-vb {
-  width: 3px;
-  background: var(--accent);
-  border-radius: 2px;
-  transform-origin: center bottom;
-  animation: yen-voice-bars 0.5s ease-in-out infinite alternate;
-}
-
-.yen-vb:nth-child(1) {
-  height: 8px;
-  animation-delay: 0s;
-}
-.yen-vb:nth-child(2) {
-  height: 15px;
-  animation-delay: 0.07s;
-}
-.yen-vb:nth-child(3) {
-  height: 24px;
-  animation-delay: 0.14s;
-}
-.yen-vb:nth-child(4) {
-  height: 18px;
-  animation-delay: 0.1s;
-}
-.yen-vb:nth-child(5) {
-  height: 11px;
-  animation-delay: 0.03s;
-}
-.yen-vb:nth-child(6) {
-  height: 16px;
-  animation-delay: 0.09s;
-}
-.yen-vb:nth-child(7) {
-  height: 7px;
-  animation-delay: 0.02s;
-}
-
-.yen-vm {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  padding-bottom: 12px;
-}
-
-.yen-vm--vis {
-  display: flex;
-}
-
-.yen-tm {
-  display: none;
-  width: 100%;
-  padding-bottom: 12px;
-}
-
-.yen-tm--vis {
-  display: block;
-}
-
-.yen-tm-row {
+/* ── TEXT MODE ───────────────────────────────────────────── */
+.mi-root--text {
   display: flex;
   align-items: flex-end;
-  gap: 10px;
+  gap: 8px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: rgba(8, 7, 26, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(139, 92, 246, 0.12);
 }
 
-.yen-tm-row textarea {
+html[data-theme='light'] .mi-root--text {
+  background: rgba(244, 241, 251, 0.95);
+  border-top-color: rgba(155, 127, 212, 0.15);
+}
+
+.mi-box {
   flex: 1;
+  max-width: min(700px, 100%);
+  margin: 0 auto;
   background: var(--input-bg);
-  border: 1.5px solid var(--input-border);
-  border-radius: 22px;
-  padding: 12px 18px;
+  border: 1px solid var(--input-border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.mi-box:focus-within {
+  border-color: var(--accent);
+}
+
+/* ── Textarea ────────────────────────────────────────────── */
+.mi-textarea {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 12px 16px 4px;
   color: var(--text);
   font-family: var(--font-family-base);
   font-size: 16px; /* 16px prevents iOS auto-zoom */
   font-weight: 500;
-  resize: none;
-  min-height: 48px;
+  line-height: 1.5;
+  min-height: 44px;
   max-height: 120px;
-  outline: none;
-  transition: border-color 0.2s;
+  overflow-y: auto;
 }
 
-.yen-tm-row textarea:focus {
-  border-color: var(--accent);
-}
-
-.yen-tm-row textarea::placeholder {
+.mi-textarea::placeholder {
   color: var(--text2);
 }
 
-.yen-btn-round {
-  border-radius: 50%;
-  border: 1.5px solid var(--btn-border);
-  background: var(--btn-bg);
+/* ── File preview ────────────────────────────────────────── */
+.mi-file-preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 16px 0;
+  font-size: 13px;
   color: var(--text2);
+}
+
+.mi-file-remove {
+  background: none;
+  border: none;
+  padding: 0 2px;
   cursor: pointer;
+  color: var(--text2);
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.mi-file-remove:hover {
+  color: var(--rec-color);
+}
+
+/* ── Error ───────────────────────────────────────────────── */
+.mi-error {
+  margin: 0 0 8px;
+  color: var(--rec-color);
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.mi-error--inline {
+  margin: 4px 16px 0;
+  text-align: left;
+}
+
+/* ── Bottom action bar ───────────────────────────────────── */
+.mi-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px 8px;
+}
+
+.mi-actions-left,
+.mi-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* ── Buttons (shared) ────────────────────────────────────── */
+.mi-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text2);
+  transition: color 0.15s, background 0.15s, transform 0.1s;
   flex-shrink: 0;
 }
 
-.yen-btn-round:hover {
-  background: var(--btn-hover);
-}
-.yen-btn-round:active {
-  transform: scale(0.92);
+.mi-btn:active {
+  transform: scale(0.9);
 }
 
-.yen-btn-round svg {
+.mi-btn svg {
   stroke: currentColor;
   fill: none;
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+  pointer-events: none;
 }
 
-.yen-btn-sm {
+/* Icon buttons inside the box */
+.mi-btn--icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.mi-btn--icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.mi-btn--icon:hover {
+  background: var(--btn-hover);
+  color: var(--text);
+}
+
+/* Send button */
+.mi-btn--send {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 12px var(--face-glow);
+}
+
+.mi-btn--send svg {
+  width: 16px;
+  height: 16px;
+  stroke: #fff;
+}
+
+.mi-btn--send:hover {
+  filter: brightness(1.1);
+}
+
+/* Round buttons (voice mode) */
+.mi-btn--round {
   width: 48px;
   height: 48px;
+  border-radius: 50%;
+  border: 1.5px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--text2);
 }
-.yen-btn-sm svg {
+
+.mi-btn--round svg {
   width: 20px;
   height: 20px;
 }
 
-.yen-mic-big {
+.mi-btn--round:hover {
+  background: var(--btn-hover);
+  color: var(--text);
+}
+
+/* Big mic (voice mode) */
+.mi-btn--mic-big {
   width: 68px;
   height: 68px;
+  border-radius: 50%;
+  border: 1.5px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--text);
   box-shadow: 0 2px 20px var(--face-glow);
 }
 
-.yen-mic-big svg {
+.mi-btn--mic-big svg {
   width: 28px;
   height: 28px;
-  stroke: var(--text);
 }
 
-.yen-mic-big:hover {
+.mi-btn--mic-big:hover {
   background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
   box-shadow: 0 4px 32px var(--face-glow);
 }
-.yen-mic-big:hover svg {
-  stroke: #fff;
+
+/* Recording state */
+.mi-btn--rec {
+  background: var(--rec-color) !important;
+  border-color: var(--rec-color) !important;
+  color: #fff !important;
+  animation: mi-pulse 1.2s infinite;
 }
 
-.yen-mic-big--rec {
-  background: var(--rec-color);
-  border-color: var(--rec-color);
-  animation: yen-mic-pulse 1.2s infinite;
-}
-
-.yen-mic-big--rec svg {
-  stroke: #fff;
-}
-
-.yen-btn-send {
-  width: 48px;
-  height: 48px;
-  background: var(--accent);
+/* Close button (text mode, right of box) */
+.mi-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   border: none;
-  color: #fff;
-  box-shadow: 0 2px 14px var(--face-glow);
+  background: var(--btn-bg);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+  align-self: flex-end;
+  margin-bottom: 2px;
 }
 
-.yen-btn-send svg {
-  width: 20px;
-  height: 20px;
-  stroke: #fff;
+.mi-close:hover {
+  background: var(--btn-hover);
+  color: var(--text);
 }
 
-.yen-btn-close svg,
-.yen-btn-mic-s svg {
-  width: 20px;
-  height: 20px;
+.mi-close:active {
+  transform: scale(0.9);
 }
 
-.yen-btn-mic-s svg {
-  width: 19px;
-  height: 19px;
+/* ── Voice wave ──────────────────────────────────────────── */
+.mi-wave {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 32px;
 }
 
-.yen-btn-close,
-.yen-btn-mic-s {
-  width: 48px;
-  height: 48px;
+.mi-wb {
+  width: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  transform-origin: center bottom;
+  animation: mi-wave-bar 0.5s ease-in-out infinite alternate;
+}
+
+.mi-wb:nth-child(1) { height: 8px;  animation-delay: 0s;    }
+.mi-wb:nth-child(2) { height: 16px; animation-delay: 0.07s; }
+.mi-wb:nth-child(3) { height: 24px; animation-delay: 0.14s; }
+.mi-wb:nth-child(4) { height: 18px; animation-delay: 0.10s; }
+.mi-wb:nth-child(5) { height: 12px; animation-delay: 0.03s; }
+.mi-wb:nth-child(6) { height: 16px; animation-delay: 0.09s; }
+.mi-wb:nth-child(7) { height: 7px;  animation-delay: 0.02s; }
+
+/* ── Animations ──────────────────────────────────────────── */
+@keyframes mi-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--rec-glow); }
+  50%       { box-shadow: 0 0 0 10px transparent;  }
+}
+
+@keyframes mi-wave-bar {
+  from { transform: scaleY(0.4); }
+  to   { transform: scaleY(1.2); }
 }
