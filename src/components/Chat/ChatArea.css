@@ -46,8 +46,8 @@
 .yen-msg {
   padding: 11px 16px;
   border-radius: 20px;
-  font-size: 15px;
-  max-width: 70%;
+  font-size: clamp(14px, 3.5vw, 16px);
+  max-width: min(85%, 500px);
   line-height: 1.45;
   animation: yen-msg-in 0.25s ease;
 }

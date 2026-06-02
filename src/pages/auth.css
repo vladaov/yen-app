@@ -9,7 +9,7 @@
 
 .auth-card {
   width: 100%;
-  max-width: 380px;
+  max-width: min(400px, 90vw);
   background: var(--settings-bg);
   border: 1px solid var(--btn-border);
   border-radius: var(--radius-lg);
@@ -78,7 +78,8 @@
   border-radius: var(--radius-md);
   color: var(--text);
   font-size: 0.95rem;
-  padding: 0.65rem 0.9rem;
+  padding: 0.75rem 0.9rem;
+  min-height: 48px;
   transition: border-color var(--t), box-shadow var(--t);
   outline: none;
   font-family: var(--font-family-base);
@@ -111,7 +112,8 @@
   color: #fff;
   border: none;
   border-radius: var(--radius-pill);
-  padding: 0.7rem 1.5rem;
+  padding: 0.75rem 1.5rem;
+  min-height: 48px;
   font-size: 0.95rem;
   font-weight: 600;
   font-family: var(--font-family-base);

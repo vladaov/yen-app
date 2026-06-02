@@ -21,11 +21,14 @@ html {
   transition:
     background var(--t),
     color var(--t);
+  overflow-x: hidden;
 }
 
 body {
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 button,
